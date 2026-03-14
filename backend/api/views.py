@@ -16,3 +16,16 @@ class ExperienceView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return ContentModel.Experience.objects.filter(id=self.kwargs["id"])
+
+class CategoryView(generics.RetrieveAPIView):
+    serializer_class = ContentSerializer.CategorySerializer
+    permission_classes = [AllowAny]
+    lookup_field = "id"
+
+    def get_queryset(self):
+        return ContentModel.Category.objects.filter(id=self.kwargs["id"])
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context

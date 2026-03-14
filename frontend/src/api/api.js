@@ -1,21 +1,44 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+const api = axios.create({
+  baseURL: "http://localhost:8000",
+  // baseURL: "https://backend-docker-62937624921.us-central1.run.app/",
+  withCredentials: true,
 });
 
-export const getExperiences = () => API.get("/experiences");
+api.interceptors.request.use(
+  async (config) => {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
-export const getExperience = (id) =>
-  API.get(`/experiences/${id}`);
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-export const createBooking = (data) =>
-  API.post("/bookings", data);
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        await api.post("/auth/refresh/");
+        return api(originalRequest);
+      } catch (err) {
+        alert(err);
+        store.dispatch(logoutUser());
+        window.location.href = "/login";
+        return Promise.reject(err);
+      }
+    }
+    return Promise.reject(error);
+  },
+);
 
-export const getBookings = (userId) =>
-  API.get(`/bookings/user/${userId}`);
-
-export const loginUser = (data) =>
-  API.post("/auth/login", data);
-
-export default API;
+export const getExperiences = () => api.get("/experiences");
+export const getExperience = (id) => api.get(`/experiences/${id}`);
+export const createBooking = (data) => api.post("/bookings", data);
+export const getBookings = (userId) => api.get(`/bookings/user/${userId}`);
+export const loginUser = (data) => api.post("/auth/login", data);
+export default api;
