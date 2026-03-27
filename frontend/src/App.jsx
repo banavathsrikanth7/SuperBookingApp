@@ -1,27 +1,44 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./Page/Home";
-import { ExperienceDetails } from "./Page/ExperienceDetails";
-// import BookingPage from "./pages/BookingPage";
-// import MyBookings from "./pages/MyBookings";
-import Login from "./Page/Login";
+import { useContext } from "react";
+import Home from "./pages/Home";
+import { ExperienceDetails } from "./pages/ExperienceDetails";
+import { LocationDetails } from "./pages/LocationDetails";
+import BookingPage from "./pages/BookingPage";
+import MyBookings from "./pages/MyBookings";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
-
+import { ModalProvider } from "./context/ModalContext";
+import ModalContext from "./context/ModalContext";
 import LoginSignup from "./components/LoginSignup";
+import Footer from "./components/Footer";
+
+function AppContent() {
+  const { isLoginModalOpen } = useContext(ModalContext);
+
+  return (
+    <main>
+      <Navbar />
+      {isLoginModalOpen && <LoginSignup />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/experience/:id" element={<ExperienceDetails />} />
+        <Route path="/location/:id" element={<LocationDetails />} />
+        <Route path="/booking/:id" element={<BookingPage />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+      </Routes>
+      <Footer />
+    </main>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Navbar />
-
-        <Routes>
-          {/* <Route path="/" element={<Home />} /> */}
-          <Route path="/experience/:id" element={<ExperienceDetails />} />
-          {/* <Route path="/booking/:id" element={<BookingPage />} /> */}
-          {/* <Route path="/my-bookings" element={<MyBookings />} /> */}
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </BrowserRouter>
+      <ModalProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </ModalProvider>
     </AuthProvider>
   );
 }

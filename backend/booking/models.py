@@ -24,8 +24,8 @@ class Booking(models.Model):
     booking_reference = models.CharField(
         max_length=50, unique=True, db_index=True, null=False
     )
-    user_id = models.ForeignKey(
-        User_Data, on_delete=models.CASCADE, related_name="user_id", db_index=True
+    user = models.ForeignKey(
+        User_Data, on_delete=models.CASCADE, related_name="booking", db_index=True
     )
     experience_id = models.ForeignKey(
         Experience,
@@ -206,7 +206,7 @@ class Payment(models.Model):
         unique=True,
         db_index=True,
     )
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         User_Data, on_delete=models.CASCADE, related_name="payments", db_index=True
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
@@ -275,6 +275,6 @@ class Payment(models.Model):
         db_table = "payments"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["user_id", "status"]),
+            models.Index(fields=["user", "status"]),
             models.Index(fields=["created_at"]),
         ]

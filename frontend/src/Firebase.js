@@ -6,13 +6,15 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCb6yoqJLHL3scxEpZ3Wn9yOgO7oeEPQ54",
-  authDomain: "start-up-fbbcc.firebaseapp.com",
-  projectId: "start-up-fbbcc",
-  storageBucket: "start-up-fbbcc.firebasestorage.app",
-  messagingSenderId: "6994123335",
-  appId: "1:6994123335:web:bb360921da019497ddaf62"
+  apiKey: "AIzaSyDuAxfk1K6RslXWwkSk2f9nxqwdgTsmq94",
+  authDomain: "superbookingapp.firebaseapp.com",
+  projectId: "superbookingapp",
+  storageBucket: "superbookingapp.firebasestorage.app",
+  messagingSenderId: "455119199745",
+  appId: "1:455119199745:web:50d27455e2d06da6b66a00",
+  measurementId: "G-YGFK5DSKKG",
 };
 
 // Initialize Firebase

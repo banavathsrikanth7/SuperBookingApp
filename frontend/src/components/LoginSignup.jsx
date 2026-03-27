@@ -1,8 +1,15 @@
-import { useState, useEffect } from "react";
-import { signUp, login, loginWithGoogle, setupRecaptcha } from "../AuthServices";
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  signUp,
+  loginWithGoogle,
+  setupRecaptcha,
+} from "../services/AuthServices";
+import AuthContext from "../context/AuthContext";
+import ModalContext from "../context/ModalContext";
 
 export default function LoginSignup() {
-
+  const { closeLoginModal } = useContext(ModalContext);
   const [isLogin, setIsLogin] = useState(false);
   const [showPhoneLogin, setShowPhoneLogin] = useState(false);
 
@@ -19,6 +26,9 @@ export default function LoginSignup() {
 
   const [loading, setLoading] = useState(false);
 
+  const { login: login, loginWithFirebaseToken } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   useEffect(() => {
     let interval;
 
@@ -34,8 +44,8 @@ export default function LoginSignup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!fullName) {
-      alert("Username is required");
+    if (!isLogin && !fullName) {
+      alert("Full Name is required");
       return;
     }
 
@@ -50,9 +60,16 @@ export default function LoginSignup() {
       if (isLogin) {
         await login(email, password);
         alert("Logged in successfully");
+        closeLoginModal();
+        navigate("/");
       } else {
         await signUp(email, password, fullName);
         alert("Account created successfully");
+        setIsLogin(true);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFullName("");
       }
     } catch (err) {
       alert(err.message);
@@ -62,12 +79,6 @@ export default function LoginSignup() {
   };
 
   const sendOTP = async () => {
-
-    if (!fullName) {
-      alert("Username is required");
-      return;
-    }
-
     try {
       const result = await setupRecaptcha(phone);
       setConfirmationResult(result);
@@ -80,8 +91,12 @@ export default function LoginSignup() {
 
   const verifyOTP = async () => {
     try {
-      await confirmationResult.confirm(otp);
+      const result = await confirmationResult.confirm(otp);
+      const idToken = await result.user.getIdToken();
+      await loginWithFirebaseToken(idToken);
       alert("Phone login successful");
+      closeLoginModal();
+      navigate("/");
     } catch (err) {
       alert("Invalid OTP");
     }
@@ -89,18 +104,31 @@ export default function LoginSignup() {
 
   const handleGoogleLogin = async () => {
     try {
-      await loginWithGoogle();
+      const result = await loginWithGoogle();
+      const idToken = await result.user.getIdToken();
+      await loginWithFirebaseToken(idToken);
       alert("Logged in with Google");
+      closeLoginModal();
+      navigate("/");
     } catch (err) {
       alert(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-white p-4">
-
-      <div className="relative backdrop-blur-xl bg-white/10 p-8 rounded-2xl shadow-2xl  border-white/20 w-full max-w-md">
-
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeLoginModal();
+      }}
+    >
+      <div className="relative backdrop-blur-xl bg-white/10 p-8 rounded-2xl shadow-2xl border-white/20 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={closeLoginModal}
+          className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 transition-colors"
+        >
+          ×
+        </button>
         <h1 className="text-xl font-extrabold mb-8 text-center bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
           {showPhoneLogin ? "Login by phone" : isLogin ? "Log In" : "Sign Up"}
         </h1>
@@ -108,21 +136,22 @@ export default function LoginSignup() {
         {!showPhoneLogin && (
           <>
             <form className="space-y-5" onSubmit={handleSubmit}>
+              {!isLogin && (
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
+                />
+              )}
 
               <input
-                type="text"
-                placeholder="Username"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
-              />
-
-              <input
-                type="email"
-                placeholder="Email"
+                type={isLogin ? "text" : "email"}
+                placeholder={isLogin ? "Email or Username" : "Email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
+                className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
               />
 
               <input
@@ -130,7 +159,7 @@ export default function LoginSignup() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
+                className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
               />
 
               {!isLogin && (
@@ -139,7 +168,7 @@ export default function LoginSignup() {
                   placeholder="Re-enter Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
                 />
               )}
 
@@ -150,7 +179,6 @@ export default function LoginSignup() {
               >
                 {loading ? "Processing..." : isLogin ? "Log In" : "Sign Up"}
               </button>
-
             </form>
 
             <button
@@ -171,7 +199,13 @@ export default function LoginSignup() {
               <button
                 onClick={() => setShowPhoneLogin(true)}
                 className="border-none px-4 py-2 rounded-lg font-semibold outline-none hover:text-blue-500 hover:underline focus:outline-none"
-                style={{ border: "none", outline: "none", boxShadow: "none", appearance: "none", WebkitAppearance: "none" }}
+                style={{
+                  border: "none",
+                  outline: "none",
+                  boxShadow: "none",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                }}
               >
                 Another way to login
               </button>
@@ -181,21 +215,12 @@ export default function LoginSignup() {
 
         {showPhoneLogin && (
           <div className="space-y-4">
-
-            <input
-              type="text"
-              placeholder="Username"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
-            />
-
             <input
               type="tel"
               placeholder="+91XXXXXXXXXX"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
+              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
             />
 
             <button
@@ -216,7 +241,7 @@ export default function LoginSignup() {
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-3 rounded-xl bg-white/5 border border-white/10"
+              className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50"
             />
 
             <button
@@ -240,27 +265,37 @@ export default function LoginSignup() {
             <button
               onClick={() => setShowPhoneLogin(false)}
               className="w-full rounded-xl border-none bg-slate-800 py-2 outline-none hover:bg-slate-700 focus:outline-none"
-              style={{ border: "none", outline: "none", boxShadow: "none", appearance: "none", WebkitAppearance: "none" }}
+              style={{
+                border: "none",
+                outline: "none",
+                boxShadow: "none",
+                appearance: "none",
+                WebkitAppearance: "none",
+              }}
             >
               ← Back
             </button>
-
           </div>
         )}
 
         {!showPhoneLogin && (
-          <p className="text-center border-0 mt-6 text-sm">
+          <p className="text-center border-0 mt-6 text-sm text-white/80">
             {isLogin ? "New user?" : "Already have an account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="border-none font-bold text-cyan-400 outline-none hover:underline focus:outline-none"
-              style={{ border: "none", outline: "none", boxShadow: "none", appearance: "none", WebkitAppearance: "none" }}
+              style={{
+                border: "none",
+                outline: "none",
+                boxShadow: "none",
+                appearance: "none",
+                WebkitAppearance: "none",
+              }}
             >
               {isLogin ? "Sign Up" : "Log In"}
             </button>
           </p>
         )}
-
       </div>
     </div>
   );

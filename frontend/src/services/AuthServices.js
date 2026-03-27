@@ -1,4 +1,4 @@
-import { auth } from "./Firebase";
+import { auth } from "../Firebase";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -6,7 +6,7 @@ import {
   signInWithPopup,
   signOut,
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
 } from "firebase/auth";
 
 // Email signup
@@ -32,17 +32,15 @@ export const logout = () => {
 
 // Setup phone login
 export const setupRecaptcha = (phoneNumber) => {
-   if (!window.recaptchaVerifier) {
-
+  if (!window.recaptchaVerifier) {
     window.recaptchaVerifier = new RecaptchaVerifier(
       auth,
       "recaptcha-container",
       {
         size: "invisible",
-        callback: () => {}
-      }
+        callback: () => {},
+      },
     );
-
   }
 
   const appVerifier = window.recaptchaVerifier;
