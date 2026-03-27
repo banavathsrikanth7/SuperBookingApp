@@ -1,11 +1,10 @@
 @import "tailwindcss";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #040404;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,11 +14,12 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  /* color: #646cff; */
   text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+  /* color: #535bf2; */
 }
 
 html,
@@ -27,12 +27,15 @@ body,
 #root {
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+}
+
+.body {
+  padding: 32px;
 }
 
 h1 {
@@ -47,7 +50,61 @@ button {
   cursor: pointer;
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+div::-webkit-scrollbar {
+  display: none;
+}
+
+.experience-grid,
+.location-grid {
+  display: grid;
+  padding: 20px;
+
+  --visible-cols: 5;
+
+  --col-gap: 0px;
+
+  --col-hint: 0px;
+
+  --scrollbar-padding: 20px;
+
+  --col-size: calc(100% / var(--visible-cols));
+  gap: 20px;
+  grid-auto-flow: column;
+  grid-template-columns: var(--col-size);
+  grid-auto-columns: var(--col-size);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: var(--scrollbar-padding);
+}
+
+@media (max-width: 600px) {
+
+  .experience-grid,
+  .location-grid {
+    --visible-cols: 2;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 840px) {
+
+  .experience-grid,
+  .location-grid {
+    --visible-cols: 3;
+  }
+}
+
+@media (min-width: 840px) and (max-width: 1200px) {
+
+  .experience-grid,
+  .location-grid {
+    --visible-cols: 4;
+  }
+}
+
+@media (min-width: 1200px) {
+
+  .experience-grid,
+  .location-grid {
+    --visible-cols: 5;
+  }
 }

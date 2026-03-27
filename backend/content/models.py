@@ -42,9 +42,9 @@ class Category(models.Model):
 
 class Experience(models.Model):
     id = models.BigAutoField(primary_key=True)
-    category_id = models.ForeignKey(
+    category = models.ForeignKey(
         Category,
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE,
         db_column="category_id",
         related_name="experiences",
     )
@@ -52,10 +52,9 @@ class Experience(models.Model):
     description = models.TextField(blank=True, null=True)
     location = models.ForeignKey(
         Location,
-        on_delete = models.CASCADE,
-        db_column = "location_id",
-        related_name = "experiences",
-
+        on_delete=models.CASCADE,
+        db_column="location_id",
+        related_name="experiences",
     )
     latitude = models.DecimalField(
         max_digits=10, decimal_places=8, blank=True, null=True
@@ -112,7 +111,7 @@ class PricingRule(models.Model):
         ("senior", "Senior"),
     ]
 
-    experience_id = models.ForeignKey(
+    experience = models.ForeignKey(
         Experience,
         on_delete=models.CASCADE,
         related_name="pricing_rules",

@@ -1,73 +1,77 @@
-import { createContext, useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode";
-import { loginUser as loginUserApi } from "../api/api";
+import { createContext, useState, useEffect, useCallback } from "react";
 import api from "../api/api";
 
 const AuthContext = createContext();
 
 export default AuthContext;
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-}
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const token = getCookie("access_token");
-    if (token) {
-      try {
-        return jwtDecode(token);
-      } catch (e) {
-        console.error("Invalid token:", e);
-        return null;
-      }
-    }
-    return null;
-  });
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [token, setToken] = useState(() => getCookie("access_token"));
-
-  useEffect(() => {
-    const checkUserLoggedIn = () => {
-      const token = getCookie("access_token");
-      if (token) {
-        try {
-          const decodedUser = jwtDecode(token);
-          setUser(decodedUser);
-          setToken(token);
-        } catch (e) {
-          console.error("Invalid token:", e);
-          setUser(null);
-          setToken(null);
-        }
-      } else {
+  const checkUserStatus = useCallback(() => {
+    // Try to fetch authenticated user data
+    // If httponly cookie exists and is valid, request will succeed
+    // Browser automatically sends httponly cookie due to withCredentials: true
+    api
+      .get("/auth/me/")
+      .then((response) => {
+        const userData = response.data;
+        setUser(userData);
+        setToken(userData.id); // Store something meaningful
+        // console.log("User authenticated:", userData);
+        setLoading(false);
+      })
+      .catch((error) => {
+        // console.log("User not authenticated:", error.response?.status);
         setUser(null);
         setToken(null);
-      }
-    };
-    checkUserLoggedIn();
+        setLoading(false);
+      });
   }, []);
 
-  const login = async (email, password) => {
-    const response = await loginUserApi({ email, password });
-    if (response.status === 200) {
-      const token = getCookie("access_token");
-      if (token) {
-        try {
-          const decodedUser = jwtDecode(token);
-          setUser(decodedUser);
-          setToken(token);
-        } catch (e) {
-          console.error("Invalid token:", e);
-        }
+  useEffect(() => {
+    checkUserStatus();
+  }, [checkUserStatus]);
+
+  const login = async (username, password) => {
+    try {
+      // console.log("[Auth] Attempting login with:", username);
+      const response = await api.post("/auth/login/", {
+        username: username,
+        password: password,
+      });
+      // console.log("[Auth] Login response status:", response.status);
+
+      if (response.status === 200) {
+        checkUserStatus();
       }
+    } catch (error) {
+      console.error(
+        "[Auth] Login error:",
+        error.response?.status,
+        error.message,
+      );
+      throw error;
+    }
+  };
+
+  const loginWithFirebaseToken = async (firebaseToken) => {
+    try {
+      const response = await api.post("/auth/login/", {
+        firebase_token: firebaseToken,
+      });
+      if (response.status === 200) {
+        checkUserStatus();
+      }
+    } catch (error) {
+      console.error("Firebase login error:", error);
+      throw error;
     }
   };
 
   const logout = async () => {
-    // The backend should handle clearing the cookie
     await api.post("/auth/logout/");
     setUser(null);
     setToken(null);
@@ -77,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     login,
+    loginWithFirebaseToken,
     logout,
   };
 

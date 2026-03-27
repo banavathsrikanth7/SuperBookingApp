@@ -14,7 +14,7 @@ export function ExperienceDetails() {
       .get(`/api/experience/${id}`)
       .then((res) => res.data)
       .then((data) => {
-        console.log(data);
+        // console.log(data);
       })
       .catch((err) => alert(err));
   };
