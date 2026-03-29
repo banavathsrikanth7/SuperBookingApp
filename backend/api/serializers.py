@@ -1,5 +1,9 @@
 from rest_framework import serializers
 from content import models as ContentModel
+from booking import models as BookingModel
+from .paginations import StandardResultsSetPagination
+import uuid
+
 from booking.models import Booking
 from .paginations import StandardResultsSetPagination
 from django.contrib.auth.models import User
@@ -105,6 +109,85 @@ class BookingSerializer(serializers.ModelSerializer):
             "total_tickets",
             "total_amount",
             "status",
+            "cancelled_at",
+            "cancellation_reason",
+            "refund_amount",
+            "refund_status",
+            "special_requests",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+        ]
+        read_only_fields = ["booking_reference", "created_at", "updated_at", "cancelled_at"]
+
+
+class BookingCreateSerializer(serializers.ModelSerializer):
+    """For POST requests - minimal required fields"""
+    class Meta:
+        model = BookingModel.Booking
+        fields = [
+            "user_id",
+            "experience_id",
+            "booking_date",
+            "slot_time",
+            "total_tickets",
+            "total_amount",
+            "special_requests",
+        ]
+
+
+class BookingDetailSerializer(serializers.ModelSerializer):
+    """For GET requests - includes related object details"""
+    user = serializers.StringRelatedField(source="user_id", read_only=True)
+    experience = ExperienceShortSerializer(source="experience_id", read_only=True)
+
+    class Meta:
+        model = BookingModel.Booking
+        fields = [
+            "booking_reference",
+            "user",
+            "experience",
+            "booking_date",
+            "slot_time",
+            "total_tickets",
+            "total_amount",
+            "status",
+            "refund_status",
+            "special_requests",
+            "created_at",
+        ]
+
+
+class CreatePaymentSerializer(serializers.ModelSerializer):
+    booking_reference = serializers.PrimaryKeyRelatedField(
+        queryset=BookingModel.Booking.objects.all()
+    ) #get all the booking_refences
+
+    class Meta:
+        model = BookingModel.Payment
+        fields = [
+            "booking_reference",
+            "payment_method",
+            "payment_gateway",
+        ]
+
+    def validate_booking_reference(self, booking):
+        if booking.status == "cancelled":
+            raise serializers.ValidationError("Cannot create payment for cancelled booking.")
+        if hasattr(booking, "payment"):
+            raise serializers.ValidationError("Payment already exists for this booking.")
+        return booking
+
+    def create(self, validated_data):
+        booking = validated_data["booking_reference"]
+        return BookingModel.Payment.objects.create(
+            payment_reference=f"PAY-{uuid.uuid4().hex[:14].upper()}",
+            booking_reference=booking,
+            user_id=booking.user_id,
+            amount=booking.total_amount,
+            status="pending",
+            **{k: v for k, v in validated_data.items() if k != "booking_reference"},
+        )
             "special_requests",
             "created_at",
             "updated_at",

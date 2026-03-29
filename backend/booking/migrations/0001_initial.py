@@ -17,8 +17,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Booking',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('booking_reference', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('booking_reference', models.CharField(db_index=True, max_length=50, primary_key=True, serialize=False, unique=True)),
                 ('booking_date', models.DateField(db_index=True)),
                 ('slot_time', models.TimeField(blank=True, null=True)),
                 ('total_tickets', models.IntegerField()),
@@ -55,7 +54,7 @@ class Migration(migrations.Migration):
                 ('refunded_at', models.DateTimeField(blank=True, help_text='When the payment was refunded', null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('booking_id', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='payment', to='booking.booking')),
+                ('booking_id', models.OneToOneField(db_index=True, on_delete=django.db.models.deletion.CASCADE, related_name='payment', to='booking.booking', to_field='booking_reference')),
                 ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='user.user_data')),
             ],
             options={
@@ -74,7 +73,7 @@ class Migration(migrations.Migration):
                 ('used_at', models.DateTimeField(blank=True, help_text='When ticket was scanned/used', null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('booking_id', models.ForeignKey(help_text='Booking this ticket belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to='booking.booking')),
+                ('booking_id', models.ForeignKey(db_index=True, help_text='Booking this ticket belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to='booking.booking', to_field='booking_reference')),
             ],
             options={
                 'db_table': 'tickets',

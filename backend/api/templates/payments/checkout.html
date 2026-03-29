@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pay</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  </head>
+  <body>
+    <h3>Proceed to payment</h3>
+    <button id="pay-btn">Pay Now</button>
+
+    <script>
+      document.getElementById("pay-btn").onclick = async function () {
+        const options = {
+          key: "{{ razorpay_key }}",
+          amount: "{{ amount }}",
+          currency: "{{ currency }}",
+          order_id: "{{ razorpay_order_id }}",
+          name: "SuperBookingApp",
+          description: "Booking Payment",
+          handler: async function (response) {
+            const res = await fetch("/payments/verify/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                payment_reference: "{{ payment_reference }}",
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const data = await res.json();
+            alert(data.message || data.error);
+          },
+          theme: { color: "#3399cc" },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      };
+    </script>
+  </body>
+</html>

@@ -4,7 +4,7 @@ from io import BytesIO
 import qrcode
 from user.models import User_Data
 from content.models import Experience
-
+import uuid
 
 class Booking(models.Model):
     STATUS_CHOICES = [
@@ -22,7 +22,7 @@ class Booking(models.Model):
     ]
 
     booking_reference = models.CharField(
-        max_length=50, unique=True, db_index=True, null=False
+        max_length=50, unique=True, db_index=True, null=False, primary_key= True
     )
     user = models.ForeignKey(
         User_Data, on_delete=models.CASCADE, related_name="booking", db_index=True
@@ -66,6 +66,11 @@ class Booking(models.Model):
 
     def is_cancelled(self):
         return self.status == "cancelled"
+    
+    def save(self, *args, **kwargs):
+        if not self.booking_reference:
+            self.booking_reference = f"BK-{uuid.uuid4().hex[:12].upper()}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Booking {self.booking_reference} - {self.status}"
@@ -89,6 +94,7 @@ class Ticket(models.Model):
     booking_id = models.ForeignKey(
         Booking,
         on_delete=models.CASCADE,
+        to_field="booking_reference",
         related_name="tickets",
         db_index=True,
         help_text="Booking this ticket belongs to",
@@ -199,9 +205,10 @@ class Payment(models.Model):
         null=False,
         help_text="Transaction ID from payment gateway",
     )
-    booking_id = models.OneToOneField(
+    booking_reference = models.OneToOneField(
         Booking,
         on_delete=models.CASCADE,
+        to_field="booking_reference",
         related_name="payment",
         unique=True,
         db_index=True,
