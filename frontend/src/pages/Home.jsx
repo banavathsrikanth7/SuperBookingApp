@@ -5,7 +5,7 @@ import LocationCard from "../components/LocationCard";
 import CategoryCard from "../components/CategoryCard";
 import image1 from "../assets/image1.png";
 
-// Hero banner images — swap these URLs with your actual assets
+
 const heroSlides = [
   {
     image:
@@ -107,10 +107,10 @@ function Home() {
   return (
     <div className="body">
 
-      {/* ── Hero Banner ── */}
+      {/* Hero Banner  */}
       <HeroBanner />
 
-      {/* ── Continue Booking ── */}
+      {/* Continue Booking */}
       {homeData.continue_booking &&
         Object.keys(homeData.continue_booking).length > 0 && (
           <section className="continue-booking-section">
@@ -136,7 +136,7 @@ function Home() {
           </section>
         )}
 
-      {/* ── Explore Locations ── */}
+      {/* Explore Locations */}
       {homeData.explore_locations && (
         <section className="explore-locations-section">
           <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark mb-6">
@@ -150,7 +150,7 @@ function Home() {
         </section>
       )}
 
-      {/* ── Featured Categories (e.g. Explore Museums) ── */}
+      {/* Featured Categories */}
       {homeData.featured_categories &&
         homeData.featured_categories.map((category) => (
           <section
@@ -170,7 +170,7 @@ function Home() {
           </section>
         ))}
 
-      {/* ── Browse by Categories ── */}
+      {/* Browse by Categories */}
       {homeData.all_categories && (
         <section className="all-categories-section">
           <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark mb-6">
