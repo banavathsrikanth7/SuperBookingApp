@@ -67,6 +67,7 @@ export default function BookingPage() {
   const [adults, setAdults] = useState(1);
 
   const total = adults * TICKET_PRICE;
+  {/* razorpay checkout*/}
   const handlePayment = async ()=>{
     try {
       const res = await api.post("/api/create-payment",{
