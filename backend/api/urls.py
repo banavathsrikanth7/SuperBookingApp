@@ -30,4 +30,8 @@ urlpatterns = [
     ),
     path("signup/", views.SignupView.as_view(), name="signup"),
     path("home/", views.HomeView.as_view(), name="Home_page"),
+    path("reviews/create",views.CreateReviewView.as_view(), name="createreview"),
+    path("reviews/retrieve",views.RetrieveReviewView.as_view(), name="retrievereview"),
+    path("reviews/update",views.UpdateReviewView.as_view(), name="updatereview"),
+    path("reviews/delete",views.DeleteReviewView.as_view(), name="deletereview"),
 ]
