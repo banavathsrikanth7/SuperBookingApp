@@ -41,3 +41,20 @@
 .read-the-docs {
   color: #888;
 }
+.experience-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* or however many columns */
+  gap: 1.5rem;
+  align-items: stretch; /* ← this makes all cards same height */
+}
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* mobile: 2 cols */
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .location-grid {
+    grid-template-columns: repeat(4, 1fr); /* desktop: 4 cols */
+  }
+}

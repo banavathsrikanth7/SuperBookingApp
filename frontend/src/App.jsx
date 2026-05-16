@@ -11,6 +11,9 @@ import { ModalProvider } from "./context/ModalContext";
 import ModalContext from "./context/ModalContext";
 import LoginSignup from "./components/LoginSignup";
 import Footer from "./components/Footer";
+import SuccessPage from "./pages/SuccessPage";
+import FailedPage from "./pages/FailedPage";
+
 
 function AppContent() {
   const { isLoginModalOpen } = useContext(ModalContext);
@@ -25,6 +28,8 @@ function AppContent() {
         <Route path="/location/:id" element={<LocationDetails />} />
         <Route path="/booking/:id" element={<BookingPage />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/success"element={<SuccessPage/>}/>
+       <Route path="/failed" element={<FailedPage />} />
       </Routes>
       <Footer />
     </main>

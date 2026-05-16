@@ -1,8 +1,8 @@
 import "../styles/CategoryCard.css";
-
+import { Link } from "react-router-dom";
 function CategoryCard({ category }) {
   return (
-    <a href={`/category/${category.id}`} className="category-card">
+    <Link to={`/category/${category.id}`} className="category-card">
       <div className="category-card__image-wrap">
         {category.icon_url && (
           <img
@@ -13,7 +13,7 @@ function CategoryCard({ category }) {
         )}
       </div>
       <h3 className="category-card__title">{category.name}</h3>
-    </a>
+    </Link>
   );
 }
 
