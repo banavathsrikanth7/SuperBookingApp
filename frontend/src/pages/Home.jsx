@@ -4,6 +4,8 @@ import ExperienceCard from "../components/ExperienceCard";
 import LocationCard from "../components/LocationCard";
 import CategoryCard from "../components/CategoryCard";
 import image1 from "../assets/image1.png";
+import BookingCard from "../components/BookingCard";
+
 
 
 const heroSlides = [
@@ -121,12 +123,12 @@ function Home() {
               {Array.isArray(homeData.continue_booking) ? (
                 homeData.continue_booking.map((booking) => (
                   <BookingCard key={booking.id} booking={booking}>
-                    <h3>{booking.experience_name}</h3>
+                  {/*  <h3>{booking.experience_name}</h3>
                     <p>Reference: {booking.booking_reference}</p>
                     <p>Date: {booking.booking_date}</p>
                     <p>Tickets: {booking.total_tickets}</p>
                     <p>Total: ${booking.total_amount}</p>
-                    <p className="status">Status: {booking.status}</p>
+                    <p className="status">Status: {booking.status}</p>*/}
                   </BookingCard>
                 ))
               ) : (

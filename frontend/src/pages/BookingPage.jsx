@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 const slots = [
   {
@@ -57,12 +60,53 @@ const SlotIcon = () => (
 );
 
 export default function BookingPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedDay, setSelectedDay] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState(2);
   const [adults, setAdults] = useState(1);
 
   const total = adults * TICKET_PRICE;
-
+  const handlePayment = async ()=>{
+    try {
+      const res = await api.post("/api/create-payment",{
+        amount :total
+      });
+      const order = res.data;
+      openRazorpay(order);
+      console.log(order);
+    }
+    catch (error){
+      console.log(error);
+    }
+  };
+  const openRazorpay = (order) =>{
+  const options ={
+    key : "YOUR_RAZORPAY_KEY",
+    amount:order.amount,
+    currency:order.currency,
+    order_id: order.order_id,
+    name :"MuseumBooking",
+  
+    handler: async function (response){
+      await verifyPayment(response,order);
+    }
+  };
+  const paymentObject = new window.Razorpay(options);
+  paymentObject.open();
+  };
+  const verifyPayment = async (response,order) =>{
+    try {
+      const res = await api.post("/api/verify-payment",{
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature
+      }); navigate("/success");
+    } catch (error) {
+      console.log(error);
+      navigate("/failed")
+    }
+  };
   return (
      <div className="body">
     <div
@@ -228,7 +272,7 @@ export default function BookingPage() {
               >
                 Add to Cart
               </button>
-              <button
+              <button onClick = {handlePayment}
                 className="w-full py-4 rounded-full font-bold text-base tracking-wide transition-all duration-200 hover:opacity-90 active:scale-95"
                 style={{ background: "#1a5c40", color: "#fff" }}
               >

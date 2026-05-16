@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+
+
 function ExperienceCard({ experience }) {
+  
   const images = String(experience.image_url || "")
     .split(",")
     .map((url) => url.trim())
@@ -22,11 +25,11 @@ function ExperienceCard({ experience }) {
   };
 
   return (
-    <Link to={`/experience/${experience.id}`} className="block h-full">
+    <Link to={`/booking/${experience.id}`} className="block h-full">
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-100 flex flex-col h-full">
 
         {/* Image Carousel Container */}
-        <div className="relative w-full h-56 flex-shrink-0 overflow-hidden">
+        <div   className="relative w-full h-56 flex-shrink-0 overflow-hidden">
           <img
             src={images[currentImageIndex] || experience.image_url}
             alt={experience.name}
