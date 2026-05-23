@@ -63,7 +63,7 @@ class Category(models.Model):
 
 class Experience(models.Model):
     id = models.BigAutoField(primary_key=True)
-    public_id = models.CharField(max_length=10, unique=True, blank=True, editable=False)
+    public_id = models.CharField(max_length=12, unique=True, blank=True, editable=False)
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
