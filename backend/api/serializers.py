@@ -5,7 +5,41 @@ from user.models import User_Data
 
 # from django.contrib.auth.models import User as AuthUser
 from .paginations import StandardResultsSetPagination
-import uuid
+from reviews.models import Review as ReviewModel
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request is None:  # or not request.user.is_authenticated
+            raise serializers.ValidationError(
+                "Authentication required to create review."
+            )
+
+        validated_data["user_id"] = request.user.user_data
+        return super().create(validated_data)
+
+    class Meta:
+        model = ReviewModel
+        fields = [
+            "id",
+            "user_id",
+            "experience_id",
+            "rating",
+            "review_text",
+            "helpful_count",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+        ]
+        read_only_fields = [
+            "id",
+            "user_id",
+            "helpful_count",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+        ]
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
@@ -201,7 +235,12 @@ class CreatePaymentSerializer(serializers.ModelSerializer):
         ]
 
     def validate_booking(self, booking):
-
+        request = self.context.get("request")
+        if request and hasattr(request, "user") and request.user.is_authenticated:
+            if booking.user.user != request.user:
+                raise serializers.ValidationError(
+                    "You do not have permission to create a payment for this booking."
+                )
         if booking.status == "cancelled":
             raise serializers.ValidationError(
                 "Cannot create payment for cancelled booking."
@@ -225,6 +264,39 @@ class CreatePaymentSerializer(serializers.ModelSerializer):
         validated_data["status"] = "pending"
 
         return BookingModel.Payment.objects.create(**validated_data)
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    qr_image = serializers.SerializerMethodField()
+    booking_reference = serializers.CharField(source="booking.reference", read_only=True)
+    booking_date = serializers.DateField(source="booking.booking_date", read_only=True)
+    slot_time = serializers.TimeField(source="booking.slot_time", read_only=True)
+    total_tickets = serializers.IntegerField(source="booking.total_tickets", read_only=True)
+    total_amount = serializers.DecimalField(
+        source="booking.total_amount", max_digits=10, decimal_places=2, read_only=True
+    )
+    status = serializers.CharField(source="booking.status", read_only=True)
+    experience_name = serializers.CharField(
+        source="booking.experience.name", read_only=True
+    )
+
+    class Meta:
+        model = BookingModel.Ticket
+        fields = [
+            "id",
+            "qr_code",
+            "qr_image",
+            "booking_reference",
+            "booking_date",
+            "slot_time",
+            "total_tickets",
+            "total_amount",
+            "status",
+            "experience_name",
+        ]
+
+    def get_qr_image(self, obj):
+        return obj.get_qr_code_image_base64()
 
 
 class UserDataRegisterSerializer(serializers.ModelSerializer):
