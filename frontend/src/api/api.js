@@ -6,8 +6,37 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const cacheStore = new Map();
+
+export const clearCache = () => {
+  cacheStore.clear();
+};
+
+const originalGet = api.get;
+api.get = async function (url, config) {
+  const bypassCache = config?.cache === false || url.includes("/auth/");
+  if (bypassCache) {
+    return originalGet.call(this, url, config);
+  }
+
+  const cacheKey = url + (config?.params ? JSON.stringify(config.params) : "");
+  const now = Date.now();
+  const cached = cacheStore.get(cacheKey);
+
+  if (cached && now - cached.timestamp < 5 * 60 * 1000) {
+    return cached.response;
+  }
+
+  const response = await originalGet.call(this, url, config);
+  cacheStore.set(cacheKey, {
+    response,
+    timestamp: now,
+  });
+  return response;
+};
+
 api.interceptors.request.use(
-  async (config) => {
+  (config) => {
     return config;
   },
   (error) => {
@@ -16,7 +45,13 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const method = response.config?.method?.toLowerCase();
+    if (method && ["post", "put", "delete", "patch"].includes(method)) {
+      clearCache();
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     const requestUrl = originalRequest?.url || "";
@@ -61,9 +96,9 @@ api.interceptors.response.use(
   },
 );
 
-export const getExperiences = () => api.get("/experiences");
-export const getExperience = (id) => api.get(`/experiences/${id}`);
-export const createBooking = (data) => api.post("/bookings", data);
+export const getExperiences = () => api.get("/api/experiences/");
+export const getExperience = (id) => api.get(`/api/experience/${id}`);
+export const createBooking = (data) => api.post("/api/booking/create/", data);
 export const getBookings = (userId) => api.get(`/bookings/user/${userId}`);
 export const loginUser = (data) => api.post("/auth/login", data);
 export default api;

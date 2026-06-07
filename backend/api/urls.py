@@ -6,9 +6,9 @@ urlpatterns = [
         "experience/<str:public_id>", views.ExperienceView.as_view(), name="experience"
     ),
     path(
-        "experience/category/<str:category>/",
-        views.ExperienceCategoryView.as_view(),
-        name="experience_category",
+        "experience/<str:experience_public_id>/reviews/",
+        views.RetrieveExperienceReviewsView.as_view(),
+        name="experience_reviews",
     ),
     path("location/", views.LocationListView.as_view(), name="location_list"),
     path("location/<str:public_id>", views.LocationView.as_view(), name="location"),
@@ -24,7 +24,7 @@ urlpatterns = [
         name="razorpay_webhook",
     ),
     path("bookings/", views.BookingTicketView.as_view(), name="bookings"),
-    path("signup/", views.SignupView.as_view(), name="signup"),
+    # path("signup/", views.SignupView.as_view(), name="signup"),
     path("home/", views.HomeView.as_view(), name="Home_page"),
     path("reviews/create", views.CreateReviewView.as_view(), name="createreview"),
     path("reviews/retrieve", views.RetrieveReviewView.as_view(), name="retrievereview"),

@@ -1,6 +1,59 @@
 @import "tailwindcss";
 @import "./styles/light.css";
 
+@theme {
+  --color-primary: var(--md-sys-color-primary);
+  --color-on-primary: var(--md-sys-color-on-primary);
+  --color-primary-fixed: var(--md-sys-color-primary-fixed);
+  --color-on-primary-fixed: var(--md-sys-color-on-primary-fixed);
+  --color-primary-fixed-dim: var(--md-sys-color-primary-fixed-dim);
+  --color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --color-background: var(--md-sys-color-background);
+  --color-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
+  --color-surface-container-low: var(--md-sys-color-surface-container-low);
+  --color-surface-container: var(--md-sys-color-surface-container);
+  --color-surface-container-high: var(--md-sys-color-surface-container-high);
+  --color-surface-container-highest: var(--md-sys-color-surface-container-highest);
+  --color-outline-variant: var(--md-sys-color-outline-variant);
+  --color-outline: var(--md-sys-color-outline);
+  --color-error: var(--md-sys-color-error);
+  --color-on-error: var(--md-sys-color-on-error);
+  --color-error-container: var(--md-sys-color-error-container);
+  --color-on-error-container: var(--md-sys-color-on-error-container);
+
+  /* Dynamic color mappings to make standard Tailwind classes respect design system themes */
+  --color-white: var(--md-sys-color-surface-container-lowest);
+  --color-gray-50: var(--md-sys-color-surface-container-low);
+  --color-gray-100: var(--md-sys-color-surface-container);
+  --color-gray-150: var(--md-sys-color-surface-container-high);
+  --color-gray-200: var(--md-sys-color-surface-container-highest);
+  --color-gray-250: var(--md-sys-color-outline-variant);
+  --color-gray-300: var(--md-sys-color-outline-variant);
+  --color-gray-400: var(--md-sys-color-outline-variant);
+  --color-gray-450: var(--md-sys-color-outline);
+  --color-gray-500: var(--md-sys-color-outline);
+  --color-gray-550: var(--md-sys-color-outline);
+  --color-gray-650: var(--md-sys-color-on-surface-variant);
+  --color-gray-600: var(--md-sys-color-on-surface-variant);
+  --color-gray-700: var(--md-sys-color-on-surface);
+  --color-gray-750: var(--md-sys-color-on-surface);
+  --color-gray-800: var(--md-sys-color-on-surface);
+  --color-gray-855: var(--md-sys-color-on-surface);
+  --color-gray-900: var(--md-sys-color-on-surface);
+  --color-gray-950: var(--md-sys-color-on-surface);
+
+  --spacing-margin-mobile: 20px;
+  --spacing-gutter-desktop: 32px;
+  --spacing-stack-md: 16px;
+  --spacing-container-max: 1280px;
+  --spacing-stack-lg: 32px;
+  --spacing-margin-desktop: 64px;
+  --spacing-stack-sm: 8px;
+
+  --animate-fade-in: fadeIn 0.6s ease-out;
+  --animate-scale-in: scaleIn 0.6s ease-out;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -11,6 +64,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --f1: 'Syne', sans-serif;
+
+  --white: #fff;
+  --teal: #00d4aa;
+  --teal2: #00b894;
 }
 
 a {
@@ -24,36 +82,28 @@ a:hover {
 }
 
 html,
-body,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
 #root {
   width: 100%;
-  height: 100%;
-  overflow-x: hidden;
+  min-height: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
 }
 
-.body {
-  padding: 0 clamp(12px, 4vw, 80px);
-}
 
-@media (max-width: 640px) {
-  .body {
-    padding: 0 12px;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .body {
-    padding: 0 24px;
-  }
-}
 
 h1 {
-  font-size: 3.2em;
+  /* font-size: 3.2em; */
   line-height: 1.1;
 }
 
@@ -61,70 +111,135 @@ button {
   font-family: inherit;
   border: none;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 div::-webkit-scrollbar {
   display: none;
 }
 
-.experience-grid,
-.location-grid {
-  display: grid;
-  padding: 20px;
-
-  --visible-cols: 5;
-
-  --col-gap: 0px;
-
-  --col-hint: 0px;
-
-  --scrollbar-padding: 20px;
-
-  --col-size: calc(100% / var(--visible-cols));
-  gap: 20px;
-  grid-auto-flow: column;
-  grid-template-columns: var(--col-size);
-  grid-auto-columns: var(--col-size);
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: var(--scrollbar-padding);
+.nav-logo {
+  font-family: var(--f1);
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 2px
 }
 
-@media (max-width: 600px) {
+.nz {
+  color: var(--md-sys-color-on-surface);
+}
 
-  .experience-grid,
-  .location-grid {
-    --visible-cols: 2;
+.nq {
+  color: var(--teal);
+}
+
+.ndot {
+  font-size: .55rem;
+  color: var(--teal);
+  margin-left: 2px;
+  animation: blink 2s ease infinite
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1
+  }
+
+  50% {
+    opacity: .15
   }
 }
 
-@media (min-width: 600px) and (max-width: 840px) {
 
-  .experience-grid,
-  .location-grid {
-    --visible-cols: 3;
-  }
-}
 
-@media (min-width: 840px) and (max-width: 1200px) {
-
-  .experience-grid,
-  .location-grid {
-    --visible-cols: 4;
-  }
-}
-
-@media (min-width: 1200px) {
-
-  .experience-grid,
-  .location-grid {
-    --visible-cols: 5;
-  }
-}
-
-html,
+/* Smooth Transitions for theme toggling */
 body,
-#root {
-  overflow-x: hidden;
-  width: 100%;
+header,
+nav,
+footer,
+div,
+a,
+button,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+input,
+select {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button,
+a,
+input {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+
+  0%,
+  100% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+@media (max-width: 850px) {
+  .navbar-content {
+    padding-left: 0 !important;
+  }
 }

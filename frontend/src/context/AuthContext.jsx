@@ -7,59 +7,40 @@ export default AuthContext;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [_loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const checkUserStatus = useCallback(async () => {
     try {
       const response = await api.get("/auth/me/");
-      // console.log(response.data);
       setUser(response.data);
-      // console.log("User authenticated:", userData);
       setLoading(false);
     } catch (error) {
       console.log(error.response?.data?.detail);
-      // console.log("User not authenticated:", error.response?.status);
       setUser(null);
       setLoading(false);
     }
-    // .then((response) => {
-    //   const userData = response.data;
-    //   setUser(userData);
-    //   setToken(userData.id); // Store something meaningful
-    //   // console.log("User authenticated:", userData);
-    //   setLoading(false);
-    // })
-    // .catch((error) => {
-    //   // console.log("User not authenticated:", error.response?.status);
-    //   setUser(null);
-    //   setToken(null);
-    //   setLoading(false);
-    // });
   }, []);
 
   useEffect(() => {
     checkUserStatus();
   }, [checkUserStatus]);
 
-  const login = async (username, password) => {
+  // For compatibility with any old references, we expose logout and login wrappers
+  const loginWrapper = async (email, password) => {
     try {
-      // console.log("[Auth] Attempting login with:", username);
       const response = await api.post("/auth/login/", {
-        username: username,
+        username: email,
         password: password,
       });
-      // console.log("[Auth] Login response status:", response.status);
-
-      if (response.status === 200) {
-        checkUserStatus();
+      if (response.status === 200 || response.status === 201) {
+        await checkUserStatus();
       }
     } catch (error) {
-      // console.error(
-      //   "[Auth] Login error:",
-      //   error.response?.status,
-      //   error.message,
-      // );
-      console.log(error.response?.data?.detail);
+      console.error(
+        "[Auth] Login failed:",
+        error.response?.data || error.message,
+      );
+      throw error;
     }
   };
 
@@ -68,11 +49,26 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post("/auth/login/", {
         firebase_token: firebaseToken,
       });
-      if (response.status === 200) {
-        checkUserStatus();
+      // Handle both 200 (Login) and 201 (Social Signup/Created)
+      if (response.status === 200 || response.status === 201) {
+        await checkUserStatus();
       }
     } catch (error) {
-      console.error("Firebase login error:", error);
+      console.error(
+        "[Auth] Firebase token login failed:",
+        error.response?.data || error.message,
+      );
+      throw error;
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await api.patch("/auth/me/", profileData);
+      setUser(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("[Auth] Profile update failed:", error);
       throw error;
     }
   };
@@ -84,12 +80,17 @@ export const AuthProvider = ({ children }) => {
 
   const contextData = {
     user,
-    login,
+    isAuthenticated: !!user,
+    loading,
+    login: loginWrapper,
     loginWithFirebaseToken,
     logout,
+    updateProfile,
   };
 
   return (
-    <AuthContext.Provider value={contextData}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={contextData}>
+      {!loading && children}
+    </AuthContext.Provider>
   );
 };
