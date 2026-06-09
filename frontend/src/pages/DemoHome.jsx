@@ -343,7 +343,7 @@ export default function DemoHome() {
         </div>
 
         {/* Hero copy and search */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 pb-12 sm:pb-0">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 pt-9 sm:pt-0 pb-12 sm:pb-0">
           <p className="text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-widest mb-4">India's Heritage Discovery Platform</p>
 
           <h1 className="text-[1.65rem] leading-tight sm:text-5xl lg:text-7xl font-black text-white sm:leading-[1.05] tracking-tight mb-4">
@@ -382,27 +382,31 @@ export default function DemoHome() {
 
               <div
                 className="flex-1 flex items-center px-4 py-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group relative"
-                onClick={() => setTravelersPickerOpen(false)}
+                onClick={() => { setDatePickerOpen(!datePickerOpen); setTravelersPickerOpen(false); }}
               >
                 <Clock className="w-5 h-5 text-slate-400 mr-3 group-hover:text-[#136b55] transition-colors" />
                 <div className="text-left">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Dates</p>
                   <p className="font-semibold text-slate-800 text-sm">{dates}</p>
                 </div>
-                <input
-                  type="date"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const d = new Date(e.target.value);
-                      const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-                      setDates(formatted);
-                    } else {
-                      setDates("Add dates");
-                    }
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                />
+                {datePickerOpen && (
+                  <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 z-40 w-64" onClick={(e) => e.stopPropagation()}>
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-3">Select Date</p>
+                    <input
+                      type="date"
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const d = new Date(e.target.value);
+                          const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                          setDates(formatted);
+                          setDatePickerOpen(false);
+                        }
+                      }}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#136b55]/20 focus:border-[#136b55]"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="w-px bg-slate-100 hidden md:block my-2"></div>
@@ -530,7 +534,7 @@ export default function DemoHome() {
 
         {/* CTA */}
         <div className="text-center mt-10">
-          <Link to="/cities" className="inline-flex items-center gap-2 bg-on-surface hover:bg-opacity-90 text-surface-container-lowest font-bold px-8 py-3.5 rounded-full text-sm transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+          <Link to="/cities" className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-8 py-3.5 rounded-full text-sm transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
             Start Exploring All Cities <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

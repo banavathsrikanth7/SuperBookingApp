@@ -5,7 +5,7 @@ import DemoHome from "./pages/DemoHome";
 import { ExperienceDetails } from "./pages/ExperienceDetails";
 import { ExperienceDetails as ExperienceMock } from "./pages/ExperienceMock";
 import MyBookings from "./pages/MyBookings";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/NewNavbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ModalProvider } from "./context/ModalContext";
@@ -68,10 +68,11 @@ function AppContent() {
       <Navbar />
       {isLoginModalOpen && <LoginSignup />}
       <Chatbot />
-      <div className="pt-[73px]">
+      <div>
         <Routes>
           <Route path="/" element={<DemoHome />} />
           <Route path="/old-home" element={<Home />} />
+          <Route path="/demo-home" element={<Home />} />
           <Route path="/experience/taj-mahal" element={<ExperienceMock />} />
           <Route path="/experience/taj_mahal" element={<ExperienceMock />} />
           <Route path="/attraction/taj-mahal" element={<ExperienceMock />} />

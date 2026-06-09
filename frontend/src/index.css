@@ -1,6 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "./styles/light.css";
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+
 
 @theme {
   --color-primary: var(--md-sys-color-primary);
@@ -77,9 +78,7 @@ a {
   text-decoration: inherit;
 }
 
-a:hover {
-  /* color: #535bf2; */
-}
+
 
 
 html {
