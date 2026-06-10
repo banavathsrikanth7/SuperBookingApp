@@ -3,7 +3,7 @@ import { useContext } from "react";
 import Home from "./pages/Home";
 import DemoHome from "./pages/DemoHome";
 import { ExperienceDetails } from "./pages/ExperienceDetails";
-import { ExperienceDetails as ExperienceMock } from "./pages/ExperienceMock";
+import { ExperienceDemo } from "./pages/ExperienceDemo";
 import MyBookings from "./pages/MyBookings";
 import Navbar from "./components/NewNavbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -73,14 +73,8 @@ function AppContent() {
           <Route path="/" element={<DemoHome />} />
           <Route path="/old-home" element={<Home />} />
           <Route path="/demo-home" element={<Home />} />
-          <Route path="/experience/taj-mahal" element={<ExperienceMock />} />
-          <Route path="/experience/taj_mahal" element={<ExperienceMock />} />
-          <Route path="/attraction/taj-mahal" element={<ExperienceMock />} />
-          <Route path="/attraction/taj_mahal" element={<ExperienceMock />} />
-          <Route path="/attractions/taj-mahal" element={<ExperienceMock />} />
-          <Route path="/attractions/taj_mahal" element={<ExperienceMock />} />
-          <Route path="/experience/:id" element={<ExperienceDetails />} />
           <Route path="/attraction/:id" element={<ExperienceDetails />} />
+          <Route path="/attraction-demo" element={<ExperienceDemo />} />
           <Route path="/location/:id" element={<LocationDetails />} />
           <Route path="/booking/:id" element={<BookingPage />} />
           <Route path="/payment/:id" element={<CheckoutPage />} />

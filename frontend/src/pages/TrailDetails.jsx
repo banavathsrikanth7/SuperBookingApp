@@ -263,7 +263,7 @@ export default function TrailDetails() {
             {allExperiences.map((item) => {
               const isFav = !!favorites[item.name];
               return (
-                <Link key={item.id} to={`/experience/${item.id}`}>
+                <Link key={item.id} to={`/attraction/${item.name ? item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : item.id}`}>
                   <div className="group bg-white rounded-2xl overflow-hidden shadow-[0px_12px_24px_rgba(0,0,0,0.04)] border border-[#E8ECEB] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg flex flex-col h-full cursor-pointer active:scale-95">
                     <div className="relative h-32 sm:h-48 md:h-64 overflow-hidden">
                       <img 

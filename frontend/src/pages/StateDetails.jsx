@@ -411,7 +411,7 @@ export default function StateDetails() {
               );
 
               return item.isDb ? (
-                <Link key={item.id} to={`/experience/${item.id}`}>{cardContent}</Link>
+                <Link key={item.id} to={`/attraction/${item.name ? item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : item.id}`}>{cardContent}</Link>
               ) : (
                 <div key={index} onClick={() => alert(`${item.name} booking detail page is coming soon!`)}>{cardContent}</div>
               );
