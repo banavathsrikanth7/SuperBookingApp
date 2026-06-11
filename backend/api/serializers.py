@@ -148,6 +148,8 @@ class ExperienceShortSerializer(serializers.ModelSerializer):
             "is_open",
             "average_rating",
             "total_reviews",
+            "latitude",
+            "longitude",
         ]
 
     def get_category(self, obj):
@@ -195,12 +197,24 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
+    experience_id = serializers.CharField(
+        source="experience.public_id", read_only=True
+    )
+    experience_name = serializers.CharField(
+        source="experience.name", read_only=True
+    )
+    experience_image = serializers.CharField(
+        source="experience.image_url", read_only=True
+    )
+
     class Meta:
         model = BookingModel.Booking
         fields = [
             "reference",
             "user_id",
             "experience_id",
+            "experience_name",
+            "experience_image",
             "booking_date",
             "slot_time",
             "total_tickets",
@@ -343,8 +357,14 @@ class TicketSerializer(serializers.ModelSerializer):
         source="booking.total_amount", max_digits=10, decimal_places=2, read_only=True
     )
     status = serializers.CharField(source="booking.status", read_only=True)
+    experience_id = serializers.CharField(
+        source="booking.experience.public_id", read_only=True
+    )
     experience_name = serializers.CharField(
         source="booking.experience.name", read_only=True
+    )
+    experience_image = serializers.CharField(
+        source="booking.experience.image_url", read_only=True
     )
 
     class Meta:
@@ -359,7 +379,9 @@ class TicketSerializer(serializers.ModelSerializer):
             "total_tickets",
             "total_amount",
             "status",
+            "experience_id",
             "experience_name",
+            "experience_image",
         ]
 
     def get_qr_image(self, obj):

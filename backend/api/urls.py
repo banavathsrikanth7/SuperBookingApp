@@ -6,11 +6,6 @@ urlpatterns = [
         "experience/<str:public_id>", views.ExperienceView.as_view(), name="experience"
     ),
     path(
-        "experience/category/<str:category>/",
-        views.ExperienceCategoryView.as_view(),
-        name="experience_category",
-    ),
-    path(
         "experience/<str:experience_public_id>/reviews/",
         views.RetrieveExperienceReviewsView.as_view(),
         name="experience_reviews",
