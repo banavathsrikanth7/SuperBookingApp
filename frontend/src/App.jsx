@@ -33,7 +33,8 @@ import TopPlaces from "./pages/TopPlaces";
 import ExploreNearMe from "./pages/ExploreNearMe";
 import { LocationDetails } from "./pages/LocationDetails";
 import BookingPage from "./pages/BookingPage";
-
+import StatePage from "./pages/StatePage";
+import CityPage from "./pages/CityPage";
 function AppContent() {
   const { isLoginModalOpen } = useContext(ModalContext);
 
@@ -75,6 +76,8 @@ function AppContent() {
           <Route path="/explore-near-me" element={<ExploreNearMe />} />
           <Route path="/:locationName" element={<CategoryPage type="location" />} />
           <Route path="/:locationName/:categoryName" element={<CategoryPage type="combined" />} />
+          <Route path="/state/:public_id" element={<StatePage/>} />
+          <Route path ="/city/:public_id" element={<CityPage/>} />
         </Routes>
       </div>
       <Footer />

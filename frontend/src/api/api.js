@@ -102,3 +102,11 @@ export const createBooking = (data) => api.post("/api/booking/create/", data);
 export const getBookings = (userId) => api.get(`/bookings/user/${userId}`);
 export const loginUser = (data) => api.post("/auth/login", data);
 export default api;
+
+
+{/* fot city and state page*/}
+export const getState =(id) =>
+ api.get(`/api/state/${id}` );
+
+export const getCity =(id) =>
+ api.get( `/api/city/${id}`);
