@@ -36,8 +36,8 @@ import UnescoSites from "./pages/UnescoSites";
 import TopPlaces from "./pages/TopPlaces";
 import ExploreNearMe from "./pages/ExploreNearMe";
 import BookingPage from "./pages/BookingPage";
-import StatePage from "./pages/Statepage";
-import CityPage from "./pages/Citypage";
+import StatePage from "./pages/StatePage";
+import CityPage from "./pages/CityPage";
 
 function LocationRouteWrapper() {
   const { locationName } = useParams();
@@ -93,6 +93,8 @@ function AppContent() {
           <Route path="/payments/failed" element={<FailedPage />} />
           <Route path="/category/:id" element={<SingleCategoryPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
+          <Route path="/state" element={<StateIndex />} />
+          <Route path="/city" element={<CityIndex />} />
           <Route path="/states" element={<StateIndex />} />
           <Route path="/cities" element={<CityIndex />} />
           <Route path="/categories" element={<CategoryIndex />} />
