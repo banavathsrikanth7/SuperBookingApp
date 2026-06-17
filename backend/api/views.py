@@ -535,7 +535,7 @@ class HomeView(generics.RetrieveAPIView):
             )
             pending_bookings = Booking.objects.filter(
                 user_id=user_data, status="pending", deleted_at__isnull=True
-            ).order_by("-created_at")
+            ).order_by("-created_at")[:10]
             bookings_serializer = ContentSerializer.BookingSerializer(
                 pending_bookings, many=True
             )
@@ -546,7 +546,7 @@ class HomeView(generics.RetrieveAPIView):
         # 2. Get all cities (optimized with CityShortSerializer and annotated counts)
         locations = ContentModel.City.objects.select_related("state").annotate(
             experience_count=Count('experiences', filter=Q(experiences__deleted_at__isnull=True), distinct=True)
-        ).all()
+        ).all()[:10]
         locations_serializer = ContentSerializer.CityShortSerializer(
             locations, many=True, context={"request": request}
         )
@@ -567,7 +567,7 @@ class HomeView(generics.RetrieveAPIView):
         ]
 
         # 4. Get all categories with links
-        all_categories = ContentModel.Category.objects.all().order_by("name")
+        all_categories = ContentModel.Category.objects.all().order_by("name")[:10]
         categories_data = []
         for category in all_categories:
             categories_data.append(
@@ -581,7 +581,7 @@ class HomeView(generics.RetrieveAPIView):
         # 5. Get featured trails (Collections of type trail)
         featured_trails = ContentModel.Collection.objects.filter(
             collection_type="trail", is_active=True, deleted_at__isnull=True
-        )
+        )[:10]
         featured_trails_serializer = ContentSerializer.CollectionSerializer(
             featured_trails, many=True
         )
