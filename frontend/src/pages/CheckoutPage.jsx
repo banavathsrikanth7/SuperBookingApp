@@ -88,6 +88,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (booking && Number(booking.total_amount) === 0) {
+      alert("Amount is 0. Payment cannot be initiated.");
+      return;
+    }
+
     setLoadingPayment(true);
     try {
       const isPromo = couponCode.trim() === "ZEQUE@100#123";
