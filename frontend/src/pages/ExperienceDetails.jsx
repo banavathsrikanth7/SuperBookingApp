@@ -78,6 +78,21 @@ export function ExperienceDetails() {
       .get(`/api/experience/${id}`)
       .then((res) => {
         setExperience(res.data);
+        
+        // Add to recently explored
+        const item = {
+          type: "attraction",
+          name: res.data.name,
+          image: res.data.image_url ? res.data.image_url.split(",")[0].trim() : "",
+          url: `/attraction/${id}`,
+          subtitle: `Attraction in ${res.data.city || "India"}`
+        };
+        try {
+          const list = JSON.parse(localStorage.getItem("recently_explored") || "[]");
+          const filtered = list.filter(x => x.url !== item.url);
+          filtered.unshift(item);
+          localStorage.setItem("recently_explored", JSON.stringify(filtered.slice(0, 4)));
+        } catch (e) {}
       })
       .catch((err) => {
         setError("Unable to load experience details.");
