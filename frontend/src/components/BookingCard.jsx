@@ -55,7 +55,7 @@ export default function BookingCard({ booking }) {
 
   return (
     <div
-      className="border border-gray-150 rounded-lg p-4 bg-gray-50/50 hover:bg-white hover:shadow-xs transition-all duration-300 flex flex-col justify-between"
+      className="border border-gray-150 rounded-lg p-4 bg-md-sys-color-surface-container-lowest hover:bg-md-sys-color-surface-container-low hover:shadow-xs transition-all duration-300 flex flex-col justify-between"
     >
       <div>
         {/* Cover Image */}
