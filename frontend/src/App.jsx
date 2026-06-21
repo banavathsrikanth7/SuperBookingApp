@@ -100,8 +100,9 @@ function AppContent() {
           <Route path="/categories" element={<CategoryIndex />} />
           {/* <Route path="/trails" element={<TrailIndex />} /> */}
           {/* <Route path="/trails/:trailId" element={<TrailDetails />} /> */}
+          <Route path="/attraction" element={<AttractionIndex />} />
           <Route path="/attractions" element={<AttractionIndex />} />
-          {/* <Route path="/itineraries" element={<ItineraryIndex />} /> */}
+          <Route path="/itineraries" element={<ItineraryIndex />} />
           {/* <Route path="/unesco-sites" element={<UnescoSites />} /> */}
           {/* <Route path="/top-places" element={<TopPlaces />} /> */}
           {/* <Route path="/explore-near-me" element={<ExploreNearMe />} /> */}

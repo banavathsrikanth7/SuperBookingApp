@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { BookMarked, MapPin, Calendar, Settings, Compass, ChevronRight, LogOut, Search, CreditCard, Award, Loader2 } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/api';
 
 const UserDashboard = () => {
@@ -12,14 +12,17 @@ const UserDashboard = () => {
   const [editPhone, setEditPhone] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateMsg, setUpdateMsg] = useState({ text: "", type: "" });
-  // added srikanth 
 
-  const[savedAttractions, setSavedAttractions] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const[dashboardStats, setDashboardStats] = useState({ savedCount: 0, upcomingCount: 0, citiesCount: 0 });
+  const [savedAttractions, setSavedAttractions] = useState([
+    { id: 1, name: 'Amer Fort', city: 'Jaipur', img: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=800' },
+    { id: 2, name: 'Taj Mahal', city: 'Agra', img: 'https://images.unsplash.com/photo-1564507592208-028fdb71ec1e?auto=format&fit=crop&w=800' },
+    { id: 3, name: 'Hawa Mahal', city: 'Jaipur', img: 'https://images.unsplash.com/photo-1599661559882-628d01b1b016?auto=format&fit=crop&w=800' }
+  ]);
+  
+  const [bookings, setBookings] = useState({ bookings: [], tickets: [] });
+  const [dashboardStats, setDashboardStats] = useState({ savedCount: 3, upcomingCount: 0, citiesCount: 1 });
   const [dashboardLoading, setDashboardLoading] = useState(true);
- 
- 
+  const [recentlyExplored, setRecentlyExplored] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -28,31 +31,50 @@ const UserDashboard = () => {
       setEditPhone(user.mobile || "");
     }
   }, [user]);
+
+  useEffect(() => {
+    // Load recently explored items from localStorage
+    try {
+      const list = JSON.parse(localStorage.getItem("recently_explored") || "[]");
+      setRecentlyExplored(list);
+    } catch (e) {
+      console.error("Error reading recently_explored:", e);
+    }
+  }, []);
    
-   useEffect(() => { 
+  useEffect(() => { 
     async function loadDashboard(){
       try {
         setDashboardLoading(true);
-        const[statsRes,bookingsRes,savedRes] = await Promise.all([
-          api.get("/dashboard/"),
-          api.get("/bookings/"),
-          api.get("/saved/")
+        // Call the correct, mapped bookings endpoint
+        const bookingsRes = await api.get("/api/bookings/");
+        const data = bookingsRes.data || { bookings: [], tickets: [] };
+        setBookings(data);
 
-        ]);
-        setDashboardStats(statsRes.data);
-        setBookings(bookingsRes.data);
-
+        // Derive dynamic statistics from actual bookings and tickets
+        const confirmedList = Array.isArray(data.tickets) ? data.tickets : [];
+        const pendingList = Array.isArray(data.bookings) ? data.bookings : [];
+        
+        // Find unique cities in confirmed tickets
+        const uniqueCities = new Set(confirmedList.map(t => t.experience_name || "").filter(Boolean));
+        
+        setDashboardStats({
+          savedCount: 3,
+          upcomingCount: confirmedList.length + pendingList.length,
+          citiesCount: Math.max(1, uniqueCities.size)
+        });
       }
       catch(err){
-        console.log(err);
+        console.error("Error loading dashboard data:", err);
       }
       finally{
         setDashboardLoading(false);
-      }}
-      if(user){
-        loadDashboard();
       }
-    },[user]);
+    }
+    if(user){
+      loadDashboard();
+    }
+  }, [user]);
 
   const fullName = user
     ? `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || user.email
@@ -64,12 +86,6 @@ const UserDashboard = () => {
     .substring(0, 2)
     .toUpperCase();
 
-  /*const savedAttractions = [
-    { id: 1, name: 'Amer Fort', city: 'Jaipur', img: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=800&w=800' },
-    { id: 2, name: 'Taj Mahal', city: 'Agra', img: 'https://images.unsplash.com/photo-1564507592208-028fdb71ec1e?auto=format&fit=crop&w=800&w=800' },
-    { id: 3, name: 'Hawa Mahal', city: 'Jaipur', img: 'https://images.unsplash.com/photo-1599661559882-628d01b1b016?auto=format&fit=crop&w=800&w=800' }
-  ];
-*/
   const handleLogout = async () => {
     await logout();
     navigate("/");
@@ -96,14 +112,18 @@ const UserDashboard = () => {
       setTimeout(() => setUpdateMsg({ text: "", type: "" }), 4000);
     }
   };
-    // for data loader
-    if(dashboardLoading){
-      return(
-        <div className ="min-h-screen flex justify-center items-center">
-          <Loader2 className ="w-10 h-10 animate-spin"></Loader2>
-        </div>
-      )
-    }
+
+  if(dashboardLoading){
+    return(
+      <div className ="min-h-screen flex justify-center items-center bg-slate-50">
+        <Loader2 className ="w-10 h-10 animate-spin text-[#136b55]"></Loader2>
+      </div>
+    )
+  }
+
+  const pendingBookings = Array.isArray(bookings?.bookings) ? bookings.bookings : [];
+  const confirmedTickets = Array.isArray(bookings?.tickets) ? bookings.tickets : [];
+
   return (
     <div className="min-h-screen bg-slate-50 pt-28 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10">
@@ -168,7 +188,7 @@ const UserDashboard = () => {
               <div className="flex items-end justify-between mb-8">
                 <div>
                   <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Welcome back, {fullName.split(" ")[0]}.</h1>
-                  <p className="text-slate-500 mt-2">Ready for your next heritage discovery?</p>
+                  <p className="text-slate-500 mt-2 font-medium">Ready for your next heritage discovery?</p>
                 </div>
                 <button onClick={() => navigate("/state")} className="hidden sm:flex items-center gap-2 bg-[#136b55] hover:bg-[#0c4c3b] text-white px-6 py-3 rounded-full text-sm font-bold transition-all shadow-lg hover:-translate-y-0.5">
                   <Search className="w-4 h-4" /> Explore Maps
@@ -186,7 +206,7 @@ const UserDashboard = () => {
                       <BookMarked className="w-5 h-5 text-amber-400" />
                     </div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Saved Places</p>
-                    <h3 className="text-4xl font-black">12</h3>
+                    <h3 className="text-4xl font-black">{dashboardStats.savedCount}</h3>
                   </div>
                 </div>
                 
@@ -199,7 +219,7 @@ const UserDashboard = () => {
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
                     <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider mb-1">Upcoming Trips</p>
-                    <h3 className="text-4xl font-black">3</h3>
+                    <h3 className="text-4xl font-black">{dashboardStats.upcomingCount}</h3>
                   </div>
                 </div>
 
@@ -209,10 +229,48 @@ const UserDashboard = () => {
                       <MapPin className="w-5 h-5 text-amber-600" />
                     </div>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Cities Explored</p>
-                    <h3 className="text-4xl font-black text-slate-900">5</h3>
+                    <h3 className="text-4xl font-black text-slate-900">{dashboardStats.citiesCount}</h3>
                   </div>
                 </div>
               </div>
+
+              {/* Recently Explored Section */}
+              {recentlyExplored.length > 0 && (
+                <div className="mt-12">
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-6">Recently Explored</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {recentlyExplored.map((item, idx) => (
+                      <Link
+                        key={idx}
+                        to={item.url}
+                        className="group flex flex-col bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-xs hover:shadow-md hover:border-emerald-500/30 transition-all duration-300"
+                      >
+                        <div className="h-32 overflow-hidden relative">
+                          <img
+                            src={item.image || "https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&q=80&w=600"}
+                            alt={item.name}
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent" />
+                          <div className="absolute top-3 left-3 bg-white/95 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider text-slate-900">
+                            {item.type}
+                          </div>
+                        </div>
+                        <div className="p-4 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h4 className="font-bold text-slate-900 text-sm line-clamp-1 group-hover:text-[#136b55] transition-colors">{item.name}</h4>
+                            <p className="text-slate-400 text-[10px] font-semibold mt-0.5">{item.subtitle}</p>
+                          </div>
+                          <div className="mt-3 flex items-center justify-between text-xs font-bold text-primary group-hover:underline">
+                            View details
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Saved Attractions Preview */}
               <div className="mt-12">
@@ -247,20 +305,91 @@ const UserDashboard = () => {
 
           {activeTab === 'bookings' && (
              <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="flex items-center justify-between mb-8">
-                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">Your Bookings</h2>
-               </div>
+               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Your Bookings</h2>
                
-               <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
-                    <CreditCard className="w-6 h-6 text-slate-300" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">No active bookings</h3>
-                  <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">You haven't booked any tickets yet. Explore monuments to skip the queues.</p>
-                  <button onClick={() => navigate("/state")} className="bg-[#136b55] hover:bg-[#0c4c3b] text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md">
-                    Explore Monuments
-                  </button>
-               </div>
+               {(pendingBookings.length === 0 && confirmedTickets.length === 0) ? (
+                 <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
+                      <CreditCard className="w-6 h-6 text-slate-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">No active bookings</h3>
+                    <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">You haven't booked any tickets yet. Explore monuments to skip the queues.</p>
+                    <button onClick={() => navigate("/state")} className="bg-[#136b55] hover:bg-[#0c4c3b] text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md">
+                      Explore Monuments
+                    </button>
+                 </div>
+               ) : (
+                 <div className="space-y-8">
+                   {confirmedTickets.length > 0 && (
+                     <div>
+                       <h3 className="text-lg font-bold text-slate-850 mb-4 border-b border-slate-100 pb-2">Active Digital Passes</h3>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         {confirmedTickets.map((ticket, idx) => (
+                           <div key={idx} className="bg-white border border-slate-200/65 rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all p-5 flex flex-col justify-between gap-4">
+                             <div>
+                               <div className="flex justify-between items-start">
+                                 <h4 className="font-bold text-slate-900 text-base line-clamp-1">{ticket.experience_name}</h4>
+                                 <span className="bg-emerald-50 text-[#136b55] border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                   Confirmed
+                                 </span>
+                               </div>
+                               <p className="text-[10px] text-slate-400 font-mono mt-1">Ref: {ticket.booking_reference}</p>
+                               <div className="grid grid-cols-2 gap-2 mt-4 text-xs text-slate-500">
+                                 <div>Date: <span className="font-semibold text-slate-700">{ticket.booking_date}</span></div>
+                                 <div>Slot: <span className="font-semibold text-slate-700">{ticket.slot_time || "General"}</span></div>
+                                 <div>Tickets: <span className="font-semibold text-slate-700">{ticket.total_tickets}</span></div>
+                                 <div>Paid: <span className="font-semibold text-slate-700">₹{ticket.total_amount}</span></div>
+                                </div>
+                             </div>
+                             {ticket.qr_image && (
+                               <div className="mt-2 flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                 <img src={ticket.qr_image} alt="QR Code" className="w-16 h-16 bg-white p-1 rounded-lg border border-slate-200" />
+                                 <div className="text-xs text-slate-500">
+                                   <p className="font-bold text-slate-800">Digital Ticket Pass</p>
+                                   <p className="mt-0.5">Present this code at the gates to enter.</p>
+                                 </div>
+                               </div>
+                             )}
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
+
+                   {pendingBookings.length > 0 && (
+                     <div>
+                       <h3 className="text-lg font-bold text-slate-850 mb-4 border-b border-slate-100 pb-2">Pending Orders</h3>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         {pendingBookings.map((booking) => (
+                           <div key={booking.id} className="bg-white border border-slate-200/65 rounded-3xl p-5 flex flex-col justify-between gap-4">
+                             <div>
+                               <div className="flex justify-between items-start">
+                                 <h4 className="font-bold text-slate-900 text-base">{booking.experience_name}</h4>
+                                 <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                   Pending
+                                 </span>
+                               </div>
+                               <p className="text-[10px] text-slate-400 font-mono mt-1">Ref: {booking.reference}</p>
+                               <div className="grid grid-cols-2 gap-2 mt-4 text-xs text-slate-500">
+                                 <div>Date: <span className="font-semibold text-slate-700">{booking.booking_date}</span></div>
+                                 <div>Slot: <span className="font-semibold text-slate-700">{booking.slot_time || "General"}</span></div>
+                                 <div>Tickets: <span className="font-semibold text-slate-700">{booking.total_tickets}</span></div>
+                                 <div>Amount: <span className="font-semibold text-slate-700">₹{booking.total_amount}</span></div>
+                               </div>
+                             </div>
+                             <button
+                               onClick={() => navigate(`/payment/${booking.reference}`)}
+                               className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition-all text-center cursor-pointer"
+                             >
+                               Complete Payment
+                             </button>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               )}
              </div>
           )}
 
