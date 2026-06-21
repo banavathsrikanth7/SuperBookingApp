@@ -186,7 +186,7 @@ function Navbar() {
               </button>
 
               {isNavbarLocOpen && (
-                <div className="absolute left-0 top-full mt-2 w-40 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-[70] py-1 animate-scale-in">
+                <div className="absolute left-0 top-full mt-2 w-40 max-h-80 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-[70] py-1 animate-scale-in">
                   {locations.map((loc) => {
                     const isSelected = loc.name === selectedLocation;
                     return (
@@ -326,7 +326,7 @@ function Navbar() {
                 </button>
 
                 {isSearchLocOpen && (
-                  <div className="absolute right-0 mt-1.5 w-40 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-[110] py-1 animate-scale-in">
+                  <div className="absolute right-0 mt-1.5 w-40 max-h-80 overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg z-[110] py-1 animate-scale-in">
                     {locations.map((loc) => {
                       const isSelected = loc.name === selectedLocation;
                       return (
