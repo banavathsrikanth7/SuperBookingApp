@@ -81,7 +81,7 @@ export default function BookingCard({ booking }) {
           <div className="flex justify-between items-start gap-2 mb-1.5">
             <Link
               to={`/attraction/${experienceId}`}
-              className="font-['Hanken_Grotesk'] font-bold text-sm text-gray-900 line-clamp-1 hover:text-primary transition-colors"
+              className="font-['Hanken_Grotesk'] font-bold text-sm text-md-sys-color-on-surface-container line-clamp-1 hover:text-primary transition-colors"
             >
               {booking?.experience_name || "Experience"}
             </Link>
