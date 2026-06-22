@@ -197,16 +197,20 @@ const WHY_ZEQUE = [
 
 const INTERESTS = ["History", "Architecture", "Photography", "Spiritual", "Family", "Adventure"];
 
-
-
+const FALLBACK_IMAGE_EXP =
+  "https://static.vecteezy.com/system/resources/thumbnails/000/140/923/small/india-gate-free-vector.jpg";
+const FALLBACK_IMAGE_CITY =
+  "https://img.magnific.com/free-vector/modern-skyline-building-background-design-with-reflection-effect_1017-50620.jpg?semt=ais_hybrid&w=740&q=80";
+const FALLBACK_IMAGE_TRAIL =
+  "https://media.istockphoto.com/id/2257224237/vector/flat-design-nature-landscape-with-winding-path.jpg?s=612x612&w=0&k=20&c=izv6B-Ndq-hQNBgiBwguMxC1IfjbsrxFsfxo1vpeZzo="
 
 function SmallExperienceCard({ experience }) {
   const slug = experience.name ? experience.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : experience.public_id;
-  const images = String(experience.image_url || "")
+  const images = String(experience.image_url || FALLBACK_IMAGE_EXP)
     .split(",")
     .map((url) => url.trim())
     .filter(Boolean);
-  const coverImage = images[0] || experience.image_url;
+  const coverImage = images[0] || FALLBACK_IMAGE_EXP;
 
   return (
     <Link to={`/attraction/${slug}`} className="block h-full group">
@@ -282,7 +286,7 @@ function CategoryGridCard({ category }) {
 
 function Home() {
   const navigate = useNavigate();
-  const { selectedLocation } = useContext(LocationContext);
+  const { selectedLocation, coords } = useContext(LocationContext);
   const { openSearch } = useContext(ModalContext);
 
   // Hero Carousel (from DemoHome Section 1)
@@ -400,12 +404,16 @@ function Home() {
 
   useEffect(() => {
     fetchHomeData();
-  }, [currentPage]);
+  }, [currentPage, coords]);
 
   const fetchHomeData = () => {
     setLoading(true);
+    let url = `/api/home/?${currentPage}`;
+    if (coords) {
+      url += `&latitude=${coords.latitude}&longitude=${coords.longitude}`;
+    }
     api
-      .get(`/api/home/?${currentPage}`)
+      .get(url)
       .then((res) => {
         setHomeData(res.data);
         setError(null);
@@ -517,7 +525,7 @@ function Home() {
             </h1>
 
             <p className="text-slate-300 text-base sm:text-xl font-light mb-10 max-w-xl leading-relaxed">
-              Explore 1500+ monuments, heritage trails and historic cities.
+              Explore 100+ monuments, heritage trails and historic cities.
             </p>
 
             {/* Search bar */}
@@ -561,7 +569,7 @@ function Home() {
         <section className="bg-surface-container-lowest border-b border-outline-variant/30 py-6">
           <div className="max-w-[1280px] mx-auto px-6 md:px-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
-              {[["1500+", "Heritage Sites"], ["500+", "Cities Mapped"], ["42", "UNESCO Landmarks"], ["5", "Curated Trails"]].map(([num, label]) => (
+              {[["100+", "Heritage Sites"], ["100+", "Cities Mapped"], ["20+", "UNESCO Landmarks"], ["5", "Curated Trails"]].map(([num, label]) => (
                 <div key={label} className="py-4 px-3 rounded-2xl bg-surface-container-low border border-outline-variant/50">
                   <p className="text-2xl sm:text-3xl font-black text-primary">{num}</p>
                   <p className="text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-wider mt-1">{label}</p>
@@ -700,7 +708,7 @@ function Home() {
               <div className="relative">
                 <div ref={locationsRef} className="flex overflow-x-auto pb-4 gap-6 scroll-smooth snap-x snap-mandatory no-scrollbar">
                   {homeData.explore_locations.data.map((location) => (
-                    <div key={location.id} className="w-[280px] sm:w-[450px] shrink-0 snap-start">
+                    <div key={location.public_id} className="w-[280px] sm:w-[450px] shrink-0 snap-start">
                       <LocationBentoCard location={location} />
                     </div>
                   ))}
@@ -800,7 +808,7 @@ function Home() {
             <div className="relative">
               <div ref={circuitsRef} className="flex overflow-x-auto pb-4 gap-6 scroll-smooth snap-x snap-mandatory no-scrollbar">
                 {(homeData.featured_trails && homeData.featured_trails.length > 0 ? homeData.featured_trails : CIRCUITS).map((c) => (
-                  <div key={c.name} className="w-[280px] sm:w-[360px] shrink-0 snap-start">
+                  <div key={c.name || c.title} className="w-[280px] sm:w-[360px] shrink-0 snap-start">
                     <TrailCard trail={c} />
                   </div>
                 ))}

@@ -10,54 +10,91 @@ export const LocationProvider = ({ children }) => {
   const [selectedLocation, setSelectedLocation] = useState(
     localStorage.getItem("selectedLocation") || "Kolkata"
   );
+  const [coords, setCoords] = useState(null);
   const [loadingLocation, setLoadingLocation] = useState(true);
 
+  const loadCitiesList = async (userCoords) => {
+    try {
+      let allCities = [];
+      let url = "/api/cities/names/";
+      if (userCoords) {
+        url += `?latitude=${userCoords.latitude}&longitude=${userCoords.longitude}`;
+      }
+      while (url) {
+        const res = await api.get(url);
+        if (Array.isArray(res.data)) {
+          allCities = [...allCities, ...res.data];
+          url = null;
+        } else if (Array.isArray(res.data?.results)) {
+          allCities = [...allCities, ...res.data.results];
+          url = res.data.next;
+        } else {
+          url = null;
+        }
+      }
+      setLocations(allCities);
+
+      // Auto-select nearest city if not already set manually by user
+      if (allCities.length > 0 && !localStorage.getItem("selectedLocation")) {
+        setSelectedLocation(allCities[0].name);
+        localStorage.setItem("selectedLocation", allCities[0].name);
+      }
+      return allCities;
+    } catch (err) {
+      console.error("Error loading cities list:", err);
+      return [];
+    }
+  };
+
   useEffect(() => {
-    const fetchLocationsAndIP = async () => {
-      try {
-        // Fetch locations from DB handling pagination
-        let allCities = [];
-        let url = "/api/cities/";
-        while (url) {
-          const res = await api.get(url);
-          if (Array.isArray(res.data)) {
-            allCities = [...allCities, ...res.data];
-            url = null;
-          } else if (Array.isArray(res.data?.results)) {
-            allCities = [...allCities, ...res.data.results];
-            url = res.data.next;
-          } else {
-            url = null;
-          }
-        }
-        setLocations(allCities);
+    const initializeLocation = async () => {
+      setLoadingLocation(true);
 
-        // Fetch user location via IP
-        const ipRes = await fetch("https://ipapi.co/json/");
-        const ipData = await ipRes.json();
-        const userCity = ipData.city;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const locCoords = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            setCoords(locCoords);
+            await loadCitiesList(locCoords);
+            setLoadingLocation(false);
+          },
+          async (err) => {
+            console.warn("Geolocation failed or was denied:", err);
+            // Fallback: Fetch locations without coordinates
+            const allCities = await loadCitiesList(null);
 
-        if (userCity && allCities.length > 0) {
-          // Check if userCity is present in DB
-          const matched = allCities.find(
-            (loc) => loc.name.toLowerCase() === userCity.toLowerCase()
-          );
-          if (matched) {
-            // Only update state if not already set manually by user
-            if (!localStorage.getItem("selectedLocation")) {
-              setSelectedLocation(matched.name);
-              localStorage.setItem("selectedLocation", matched.name);
+            // Fetch user location via IP as backup
+            try {
+              const ipRes = await fetch("https://ipapi.co/json/");
+              const ipData = await ipRes.json();
+              const userCity = ipData.city;
+
+              if (userCity && allCities.length > 0) {
+                const matched = allCities.find(
+                  (loc) => loc.name.toLowerCase() === userCity.toLowerCase()
+                );
+                if (matched && !localStorage.getItem("selectedLocation")) {
+                  setSelectedLocation(matched.name);
+                  localStorage.setItem("selectedLocation", matched.name);
+                }
+              }
+            } catch (ipErr) {
+              console.warn("IP Geolocation fallback failed:", ipErr);
             }
-          }
-        }
-      } catch (err) {
-        console.error("Error in LocationProvider initialization:", err);
-      } finally {
+            setLoadingLocation(false);
+          },
+          { timeout: 5000 }
+        );
+      } else {
+        await loadCitiesList(null);
         setLoadingLocation(false);
       }
     };
 
-    fetchLocationsAndIP();
+    initializeLocation();
   }, []);
 
   const changeLocation = (locName) => {
@@ -73,6 +110,7 @@ export const LocationProvider = ({ children }) => {
     locations,
     selectedLocation,
     selectedLocationObject,
+    coords,
     loadingLocation,
     changeLocation,
   };

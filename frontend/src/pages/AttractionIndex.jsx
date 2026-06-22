@@ -4,7 +4,7 @@ import { Star, MapPin, Clock, Search, ChevronDown, ChevronUp, Compass, ArrowRigh
 import api from "../api/api";
 
 const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1200";
+  "https://static.vecteezy.com/system/resources/thumbnails/000/140/923/small/india-gate-free-vector.jpg";
 
 const fetchAllPages = async (initialUrl) => {
   let url = initialUrl;
@@ -351,9 +351,8 @@ const AttractionIndex = () => {
                   )}
                 </button>
                 <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isOpen ? "max-h-[250px] border-t border-outline-variant/20 p-5" : "max-h-0"
-                  }`}
+                  className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[250px] border-t border-outline-variant/20 p-5" : "max-h-0"
+                    }`}
                 >
                   <p className="text-sm leading-6 text-on-surface-variant font-['Inter']">
                     {faq.answer}

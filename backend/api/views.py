@@ -10,7 +10,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Case, When, Value, F, FloatField, ExpressionWrapper
+from django.db.models.functions import Power
 from user.models import User_Data
 from booking.models import Booking
 from django.conf import settings
@@ -189,14 +190,75 @@ class StateView(generics.RetrieveAPIView):
         raise Http404("No State matches the given query.")
 
 
+class CityNamesListView(generics.ListAPIView):
+    serializer_class = ContentSerializer.CityNameSerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+    
+    def get_queryset(self):
+        queryset = ContentModel.City.objects.all()
+        latitude = self.request.query_params.get("latitude")
+        longitude = self.request.query_params.get("longitude")
+        
+        if latitude and longitude:
+            try:
+                lat = float(latitude)
+                lng = float(longitude)
+                distance_expr = ExpressionWrapper(
+                    Power(F("latitude") - lat, 2) + Power(F("longitude") - lng, 2),
+                    output_field=FloatField()
+                )
+                queryset = queryset.annotate(
+                    has_coords=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=Value(1)),
+                        default=Value(0),
+                        output_field=FloatField()
+                    ),
+                    distance=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=distance_expr),
+                        default=Value(999999.0),
+                        output_field=FloatField()
+                    )
+                ).order_by("-has_coords", "distance", "id")
+            except (ValueError, TypeError):
+                pass
+        return queryset[:50]
+        
 class CityListView(generics.ListAPIView):
     serializer_class = ContentSerializer.CityShortSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return ContentModel.City.objects.select_related("state").annotate(
+        queryset = ContentModel.City.objects.select_related("state").annotate(
             experience_count=Count('experiences', filter=Q(experiences__deleted_at__isnull=True), distinct=True)
         )
+        
+        latitude = self.request.query_params.get("latitude")
+        longitude = self.request.query_params.get("longitude")
+        
+        if latitude and longitude:
+            try:
+                lat = float(latitude)
+                lng = float(longitude)
+                distance_expr = ExpressionWrapper(
+                    Power(F("latitude") - lat, 2) + Power(F("longitude") - lng, 2),
+                    output_field=FloatField()
+                )
+                queryset = queryset.annotate(
+                    has_coords=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=Value(1)),
+                        default=Value(0),
+                        output_field=FloatField()
+                    ),
+                    distance=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=distance_expr),
+                        default=Value(999999.0),
+                        output_field=FloatField()
+                    )
+                ).order_by("-has_coords", "distance", "id")
+            except (ValueError, TypeError):
+                pass
+        return queryset
 
 
 class CityView(generics.RetrieveAPIView):
@@ -532,6 +594,31 @@ class HomeView(generics.RetrieveAPIView):
             category = ContentModel.Category.objects.get(name=category_name)
             experiences = category.experiences.filter(deleted_at__isnull=True)
 
+            latitude = request.query_params.get("latitude")
+            longitude = request.query_params.get("longitude")
+            if latitude and longitude:
+                try:
+                    lat = float(latitude)
+                    lng = float(longitude)
+                    distance_expr = ExpressionWrapper(
+                        Power(F("latitude") - lat, 2) + Power(F("longitude") - lng, 2),
+                        output_field=FloatField()
+                    )
+                    experiences = experiences.annotate(
+                        has_coords=Case(
+                            When(latitude__isnull=False, longitude__isnull=False, then=Value(1)),
+                            default=Value(0),
+                            output_field=FloatField()
+                        ),
+                        distance=Case(
+                            When(latitude__isnull=False, longitude__isnull=False, then=distance_expr),
+                            default=Value(999999.0),
+                            output_field=FloatField()
+                        )
+                    ).order_by("-has_coords", "distance", "id")
+                except (ValueError, TypeError):
+                    pass
+
             paginated_experiences = paginator.paginate_queryset(
                 experiences, request, view=self
             )
@@ -581,17 +668,45 @@ class HomeView(generics.RetrieveAPIView):
             continue_booking = {}
 
         # 2. Get all cities (optimized with CityShortSerializer and annotated counts)
-        locations = ContentModel.City.objects.select_related("state").annotate(
+        locations_qs = ContentModel.City.objects.select_related("state").annotate(
             experience_count=Count('experiences', filter=Q(experiences__deleted_at__isnull=True), distinct=True)
-        ).all()[:10]
+        )
+        
+        latitude = request.query_params.get("latitude")
+        longitude = request.query_params.get("longitude")
+        
+        if latitude and longitude:
+            try:
+                lat = float(latitude)
+                lng = float(longitude)
+                distance_expr = ExpressionWrapper(
+                    Power(F("latitude") - lat, 2) + Power(F("longitude") - lng, 2),
+                    output_field=FloatField()
+                )
+                locations_qs = locations_qs.annotate(
+                    has_coords=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=Value(1)),
+                        default=Value(0),
+                        output_field=FloatField()
+                    ),
+                    distance=Case(
+                        When(latitude__isnull=False, longitude__isnull=False, then=distance_expr),
+                        default=Value(999999.0),
+                        output_field=FloatField()
+                    )
+                ).order_by("-has_coords", "distance", "id")
+            except (ValueError, TypeError):
+                pass
+                
+        locations = locations_qs.all()[:10]
         locations_serializer = ContentSerializer.CityShortSerializer(
             locations, many=True, context={"request": request}
         )
 
         # 3. Get featured categories experiences with pagination
         featured_categories_config = [
-            {"name": "Museum", "title": "Explore Museums"},
-            {"name": "Amusement Park", "title": "Explore Amusement Parks"},
+            {"name": "Museums", "title": "Explore Museums"},
+            {"name": "Forts", "title": "Explore Forts"},
         ]
         featured_categories_data = [
             self._get_paginated_category_data(
@@ -1012,9 +1127,9 @@ class OfficialCSVUploadView(APIView):
 
         else: # table == "experience"
             required_headers = [
-                "NAME", "CATEGORY", "LOCATION", "IS_OPEN", 
-                "OPENING_TIME", "CLOSING_TIME", "LAST_ENTRY_TIME", 
-                "DESCRIPTION", "LATITUDE", "LONGITUDE", "IMAGE_URL", 
+                "NAME", "CATEGORY", "CITY", "IS_OPEN", 
+                "OPENING_TIME", "CLOSING_TIME", "TIME_REQUIRED", "LAST_ENTRY_TIME", 
+                "ADDRESS", "SUBTITLE", "DESCRIPTION", "LATITUDE", "LONGITUDE", "IMAGE_URL", 
                 "MAX_DAILY_CAPACITY", "ENTRY_FEE_BASE"
             ]
             missing_headers = [h for h in required_headers if h not in headers]
@@ -1037,7 +1152,7 @@ class OfficialCSVUploadView(APIView):
                         category, _ = ContentModel.Category.objects.get_or_create(name=cat_name)
                         categories[cat_key] = category
 
-                    city_name = row["LOCATION"].strip()
+                    city_name = row["CITY"].strip()
                     city_key = city_name.lower()
                     city = cities.get(city_key)
                     if not city:
@@ -1062,23 +1177,45 @@ class OfficialCSVUploadView(APIView):
                                     return datetime.min.time().replace(hour=h, minute=m, second=s)
                                 raise
 
+                    def parse_duration(duration_str):
+                        if not duration_str or not duration_str.strip():
+                            return None
+                        from datetime import timedelta
+                        val = duration_str.strip()
+                        try:
+                            parts = val.split(":")
+                            if len(parts) == 3:
+                                h, m, s = int(parts[0]), int(parts[1]), int(parts[2])
+                                return timedelta(hours=h, minutes=m, seconds=s)
+                            elif len(parts) == 2:
+                                h, m = int(parts[0]), int(parts[1])
+                                return timedelta(hours=h, minutes=m)
+                            else:
+                                return timedelta(hours=int(val))
+                        except Exception:
+                            raise ValueError(f"Invalid duration format: '{duration_str}'. Expected HH:MM:SS format.")
+
                     opening_time = parse_time(row["OPENING_TIME"])
                     closing_time = parse_time(row["CLOSING_TIME"])
+                    time_required = parse_duration(row["TIME_REQUIRED"])
                     last_entry_time = parse_time(row["LAST_ENTRY_TIME"])
 
                     place, created = ContentModel.Experience.objects.get_or_create(
                         name=name,
                         city=city,
                         defaults={
+                            "subtitle": row["SUBTITLE"],
                             "description": row["DESCRIPTION"],
                             "latitude": float(row["LATITUDE"]) if row["LATITUDE"] else 0.0,
                             "longitude": float(row["LONGITUDE"]) if row["LONGITUDE"] else 0.0,
+                            "address": row["ADDRESS"],
                             "image_url": row["IMAGE_URL"],
                             "max_daily_capacity": int(row["MAX_DAILY_CAPACITY"]) if row["MAX_DAILY_CAPACITY"] else 100,
                             "entry_fee_base": float(row["ENTRY_FEE_BASE"]) if row["ENTRY_FEE_BASE"] else 0.0,
                             "is_open": is_open,
                             "opening_time": opening_time,
                             "closing_time": closing_time,
+                            "time_required": time_required,
                             "last_entry_time": last_entry_time,
                             "category": category,
                             "deleted_at": None,

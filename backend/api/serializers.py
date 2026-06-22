@@ -360,6 +360,10 @@ class StateShortSerializer(serializers.ModelSerializer):
             data["best-time"] = data.pop("best_time")
         return data
 
+class CityNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContentModel.City
+        fields = ["name"]
 
 class CitySerializer(serializers.ModelSerializer):
     state = serializers.CharField(source="state.name", default=None, read_only=True)
