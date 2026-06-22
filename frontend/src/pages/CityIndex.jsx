@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, MapPin, Search, ChevronDown, ChevronUp, Compass, Calendar } from "lucide-react";
 import api from "../api/api";
+import LocationContext from "../context/LocationContext";
 
 const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=1200";
+  "https://img.magnific.com/free-vector/modern-skyline-building-background-design-with-reflection-effect_1017-50620.jpg?semt=ais_hybrid&w=740&q=80";
 
 const fetchAllPages = async (initialUrl) => {
   let url = initialUrl;
@@ -121,6 +122,7 @@ const CityIndex = () => {
   const [openFaq, setOpenFaq] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { coords } = useContext(LocationContext);
 
   useEffect(() => {
     const loadCities = async () => {
@@ -128,7 +130,11 @@ const CityIndex = () => {
       setError("");
 
       try {
-        const items = await fetchAllPages("/api/cities/");
+        let url = "/api/cities/";
+        if (coords) {
+          url += `?latitude=${coords.latitude}&longitude=${coords.longitude}`;
+        }
+        const items = await fetchAllPages(url);
         setCities(items);
       } catch (err) {
         setError(err?.message || "Failed to load cities.");
@@ -138,7 +144,7 @@ const CityIndex = () => {
     };
 
     loadCities();
-  }, []);
+  }, [coords]);
 
   // SEO Page Info
   useEffect(() => {
@@ -155,8 +161,11 @@ const CityIndex = () => {
   const filteredCities = useMemo(() => {
     let result = [...cities];
 
-    // Sort by experience_count (descending) so cities with the most attractions show first
-    result.sort((a, b) => (b.experience_count ?? 0) - (a.experience_count ?? 0));
+    // Sort by experience_count (descending) only if we don't have coordinates.
+    // If we have coordinates, the backend has already sorted them by nearest distance.
+    if (!coords) {
+      result.sort((a, b) => (b.experience_count ?? 0) - (a.experience_count ?? 0));
+    }
 
     // Filter by selected month
     if (selectedMonth && selectedMonth !== "All") {
@@ -177,7 +186,7 @@ const CityIndex = () => {
     }
 
     return result;
-  }, [searchQuery, cities, selectedMonth]);
+  }, [searchQuery, cities, selectedMonth, coords]);
 
   // Structured Data Schema
   const structuredData = useMemo(() => {
@@ -303,11 +312,10 @@ const CityIndex = () => {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleMonthSelect("All")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold font-['Hanken_Grotesk'] transition-all cursor-pointer ${
-                selectedMonth === "All"
+              className={`px-4 py-2 rounded-xl text-xs font-bold font-['Hanken_Grotesk'] transition-all cursor-pointer ${selectedMonth === "All"
                   ? "bg-primary text-on-primary shadow-xs"
                   : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant hover:border-primary/40 hover:text-primary"
-              }`}
+                }`}
             >
               All Year
             </button>
@@ -315,11 +323,10 @@ const CityIndex = () => {
               <button
                 key={month}
                 onClick={() => handleMonthSelect(month)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold font-['Hanken_Grotesk'] transition-all cursor-pointer ${
-                  selectedMonth === month
+                className={`px-4 py-2 rounded-xl text-xs font-bold font-['Hanken_Grotesk'] transition-all cursor-pointer ${selectedMonth === month
                     ? "bg-primary text-on-primary shadow-xs"
                     : "bg-surface-container-lowest border border-outline-variant/40 text-on-surface-variant hover:border-primary/40 hover:text-primary"
-                }`}
+                  }`}
               >
                 {month}
               </button>
@@ -459,9 +466,8 @@ const CityIndex = () => {
                   )}
                 </button>
                 <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    isOpen ? "max-h-[250px] border-t border-outline-variant/20 p-5" : "max-h-0"
-                  }`}
+                  className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[250px] border-t border-outline-variant/20 p-5" : "max-h-0"
+                    }`}
                 >
                   <p className="text-sm leading-6 text-on-surface-variant font-['Inter']">
                     {faq.answer}

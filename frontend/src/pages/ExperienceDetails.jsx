@@ -11,11 +11,15 @@ import AuthContext from "../context/AuthContext";
 import ModalContext from "../context/ModalContext";
 import Loading from "../components/Loading";
 
+const FALLBACK_IMAGE =
+  "https://static.vecteezy.com/system/resources/thumbnails/000/140/923/small/india-gate-free-vector.jpg";
+
 export function ExperienceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useContext(AuthContext);
   const { openLoginModal } = useContext(ModalContext);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const [experience, setExperience] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -78,7 +82,7 @@ export function ExperienceDetails() {
       .get(`/api/experience/${id}`)
       .then((res) => {
         setExperience(res.data);
-        
+
         // Add to recently explored
         const item = {
           type: "attraction",
@@ -92,7 +96,7 @@ export function ExperienceDetails() {
           const filtered = list.filter(x => x.url !== item.url);
           filtered.unshift(item);
           localStorage.setItem("recently_explored", JSON.stringify(filtered.slice(0, 4)));
-        } catch (e) {}
+        } catch (e) { }
       })
       .catch((err) => {
         setError("Unable to load experience details.");
@@ -120,7 +124,7 @@ export function ExperienceDetails() {
   }, []);
 
   const images = useMemo(() => {
-    return String(experience?.image_url || "")
+    return String(experience?.image_url || FALLBACK_IMAGE)
       .split(",")
       .map((url) => url.trim())
       .filter(Boolean);
@@ -244,7 +248,7 @@ export function ExperienceDetails() {
           <img
             alt={experience.name}
             className="w-full h-full object-cover"
-            src={images[0] || experience.image_url}
+            src={images[0] || experience.image_url || FALLBACK_IMAGE}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
@@ -339,7 +343,7 @@ export function ExperienceDetails() {
           </section>
 
           {/* What's Included */}
-          <section className="space-y-4">
+          {/* <section className="space-y-4">
             <h3 className="text-lg font-black text-on-surface">What's Included</h3>
             <ul className="space-y-3 font-semibold text-xs sm:text-sm text-on-surface-variant">
               <li className="flex items-start gap-3">
@@ -355,7 +359,7 @@ export function ExperienceDetails() {
                 <span>Access to Mosque and Museum</span>
               </li>
             </ul>
-          </section>
+          </section> */}
 
           {experience.image_sunrise && (
             <>
@@ -627,9 +631,41 @@ export function ExperienceDetails() {
                 </div>
               </div>
             </section>
+            <section className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
+              <div className="lg:col-span-2 flex flex-col justify-start">
+                <h2 className="font-['Hanken_Grotesk'] text-2xl sm:text-3xl font-bold text-primary mb-4">
+                  About {experience.name}
+                </h2>
+                {experience.description ? (
+                  <div className="relative">
+                    <div
+                      className={`text-on-surface-variant font-['Inter'] text-base leading-relaxed text-justify transition-all duration-300 overflow-hidden ${isExpanded || experience.description.length <= 250 ? "max-h-none" : "max-h-[120px] relative pb-6"
+                        }`}
+                    >
+                      <p className="whitespace-pre-line">{experience.description}</p>
+                      {!isExpanded && experience.description.length > 250 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/80 to-transparent pointer-events-none" />
+                      )}
+                    </div>
+                    {experience.description.length > 250 && (
+                      <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="mt-2 text-primary hover:text-primary/85 font-bold font-['Hanken_Grotesk'] text-sm transition-all focus:outline-none cursor-pointer flex items-center gap-1"
+                      >
+                        {isExpanded ? "Show Less" : "Read More"}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-on-surface-variant/70 font-['Inter'] text-base italic">
+                    No description available for {experience.name} yet.
+                  </p>
+                )}
+              </div>
+            </section>
 
             {/* What's Included */}
-            <section className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
+            {/* <section className="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/30 shadow-xs">
               <h2 className="text-lg font-black text-on-surface mb-6">What's Included</h2>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <li className="flex items-start gap-4 font-semibold">
@@ -661,7 +697,7 @@ export function ExperienceDetails() {
                   </div>
                 </li>
               </ul>
-            </section>
+            </section> */}
 
             {experience.image_sunrise && (
               <>

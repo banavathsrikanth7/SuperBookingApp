@@ -3,6 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import api from "../api/api";
 import { ChevronRight, Compass, MapPin, Clock, Globe, Star } from "lucide-react";
 
+const FALLBACK_IMAGE =
+  "https://img.magnific.com/free-vector/modern-skyline-building-background-design-with-reflection-effect_1017-50620.jpg?semt=ais_hybrid&w=740&q=80";
+
 export default function CityPage() {
   const { id } = useParams();
 
@@ -38,7 +41,7 @@ export default function CityPage() {
       .then((res) => {
         setCityData(res.data);
         setError(null);
-        
+
         // Add to recently explored
         const item = {
           type: "city",
@@ -52,7 +55,7 @@ export default function CityPage() {
           const filtered = list.filter(x => x.url !== item.url);
           filtered.unshift(item);
           localStorage.setItem("recently_explored", JSON.stringify(filtered.slice(0, 4)));
-        } catch (e) {}
+        } catch (e) { }
       })
       .catch((err) => {
         setError(err.message);
@@ -200,7 +203,7 @@ export default function CityPage() {
       {/* ── HERO ───────────────────────────────────────────── */}
       <div className="relative h-[45vh] min-h-[320px] w-full overflow-hidden">
         <img
-          src={cityData.image_url}
+          src={cityData.image_url || FALLBACK_IMAGE}
           alt={cityData.name}
           className="w-full h-full object-cover"
         />
@@ -258,10 +261,9 @@ export default function CityPage() {
             </h2>
             {cityData.description ? (
               <div className="relative">
-                <div 
-                  className={`text-on-surface-variant font-['Inter'] text-base leading-relaxed text-justify transition-all duration-300 overflow-hidden ${
-                    isExpanded || cityData.description.length <= 250 ? "max-h-none" : "max-h-[120px] relative pb-6"
-                  }`}
+                <div
+                  className={`text-on-surface-variant font-['Inter'] text-base leading-relaxed text-justify transition-all duration-300 overflow-hidden ${isExpanded || cityData.description.length <= 250 ? "max-h-none" : "max-h-[120px] relative pb-6"
+                    }`}
                 >
                   <p className="whitespace-pre-line">{cityData.description}</p>
                   {!isExpanded && cityData.description.length > 250 && (
@@ -381,8 +383,8 @@ export default function CityPage() {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-5 py-2 rounded-full font-['Hanken_Grotesk'] font-semibold text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${selectedCategory === cat
-                      ? "bg-primary text-on-primary shadow-md"
-                      : "bg-surface-container-low border border-outline-variant/50 hover:border-primary/40 hover:text-primary text-on-surface-variant"
+                    ? "bg-primary text-on-primary shadow-md"
+                    : "bg-surface-container-low border border-outline-variant/50 hover:border-primary/40 hover:text-primary text-on-surface-variant"
                     }`}
                 >
                   {cat}
@@ -515,8 +517,8 @@ export default function CityPage() {
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
                     className={`w-9 h-9 rounded-lg font-['Hanken_Grotesk'] text-sm font-semibold flex items-center justify-center transition-all cursor-pointer ${isActive
-                        ? "bg-primary text-on-primary shadow-sm"
-                        : "border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:border-primary/40"
+                      ? "bg-primary text-on-primary shadow-sm"
+                      : "border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:border-primary/40"
                       }`}
                   >
                     {pageNum}
